@@ -287,10 +287,19 @@ export const getMyPlans = async () => {
   }
 };
 
-export const getVideosStatus = () => apiFetch('/api/videos/status');
+export const getReviewsStatus = () => apiFetch('/api/reviews/status');
 
-export const verVideo = ({ video_id, calificacion, plan_id } = {}) =>
-  apiFetch('/api/videos/ver', { method: 'POST', body: { video_id, calificacion, plan_id } });
+export const submitReview = ({ modelo_id, estrellas, comentario, plan_id } = {}) =>
+  apiFetch('/api/reviews/enviar', {
+    method: 'POST',
+    body: { modelo_id, estrellas, comentario, plan_id },
+  });
+
+// Legacy wrappers kept for backward compatibility in older screens/components.
+export const getVideosStatus = () => getReviewsStatus();
+
+export const verVideo = ({ video_id, calificacion, comentario, plan_id } = {}) =>
+  submitReview({ modelo_id: video_id, estrellas: calificacion, comentario, plan_id });
 
 export const getCuentaInfo = async () => {
   const ts = Date.now();

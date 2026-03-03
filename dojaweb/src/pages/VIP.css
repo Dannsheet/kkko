@@ -11,16 +11,9 @@
   position: absolute;
   inset: -2px;
   border-radius: 999px;
-  background: conic-gradient(
-    from 0deg,
-    rgba(139, 92, 246, 0) 0deg,
-    rgba(139, 92, 246, 0.95) 70deg,
-    rgba(49, 241, 199, 0.95) 120deg,
-    rgba(139, 92, 246, 0) 180deg,
-    rgba(139, 92, 246, 0) 360deg
-  );
-  filter: blur(0.2px) drop-shadow(0 0 10px rgba(139, 92, 246, 0.75)) drop-shadow(0 0 26px rgba(139, 92, 246, 0.35));
-  animation: vipPillSpin 2.2s linear infinite;
+  background: conic-gradient(from 0deg, rgba(19, 30, 41, 0) 0deg, rgba(19, 30, 41, 0.55) 110deg, rgba(19, 30, 41, 0) 220deg, rgba(19, 30, 41, 0) 360deg);
+  filter: blur(0.2px);
+  animation: vipPillSpin 2.6s linear infinite;
 }
 
 .vipStatusPill::after {
@@ -28,8 +21,8 @@
   position: absolute;
   inset: 1px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(19, 30, 41, 0.14);
 }
 
 .vipStatusPill__text {
@@ -42,8 +35,8 @@
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.06em;
-  color: rgba(255, 255, 255, 0.98);
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.35);
+  color: rgba(19, 30, 41, 0.92);
+  text-shadow: none;
 }
 
 @keyframes vipPillSpin {

@@ -8,7 +8,7 @@ const AuthPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a] text-white">
+      <div className="min-h-screen flex items-center justify-center bg-white text-gray-900">
         Cargando...
       </div>
     );

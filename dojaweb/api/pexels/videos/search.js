@@ -1,3 +1,5 @@
+/* global process */
+
 export default async function handler(req, res) {
   try {
     if (req.method && req.method.toUpperCase() !== 'GET') {

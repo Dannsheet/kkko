@@ -181,20 +181,20 @@ const Perfil = () => {
 
   const neonCyanStyle = useMemo(
     () => ({
-      color: 'rgb(49, 241, 199)',
-      textShadow: '0 0 12px rgba(49, 241, 199, 0.75), 0 0 38px rgba(49, 241, 199, 0.4)',
+      color: '#131e29',
+      textShadow: 'none',
     }),
     [],
   );
 
   return (
-    <div className="min-h-full bg-doja-bg text-white p-4">
+    <div className="min-h-full bg-white text-[#131e29] p-0">
       <div className="relative flex items-center justify-between min-h-[32px]">
         <h1 className="pageTitleNeon absolute left-1/2 -translate-x-1/2 text-2xl font-bold">PERFIL</h1>
         <button
           type="button"
           onClick={() => navigate('/dashboard')}
-          className="text-sm text-white/60 hover:text-doja-light-cyan transition"
+          className="text-sm text-[#131e29]/60 hover:text-[#131e29] transition"
         >
           Volver
         </button>
@@ -203,7 +203,7 @@ const Perfil = () => {
           <button
             type="button"
             onClick={() => navigate('/admin')}
-            className="text-sm text-white/60 hover:text-doja-light-cyan transition"
+            className="text-sm text-[#131e29]/60 hover:text-[#131e29] transition"
           >
             Administrar
           </button>
@@ -214,31 +214,31 @@ const Perfil = () => {
         <div
           className="mt-4 px-4 py-3 rounded-xl border text-sm font-medium"
           style={{
-            borderColor: toast.type === 'error' ? '#ff4d4f' : '#8B5CF6',
-            backgroundColor: toast.type === 'error' ? 'rgba(255, 77, 79, 0.1)' : 'rgba(139, 92, 246, 0.1)',
-            color: toast.type === 'error' ? '#ff4d4f' : '#8B5CF6',
+            borderColor: toast.type === 'error' ? '#ff4d4f' : '#131e29',
+            backgroundColor: toast.type === 'error' ? 'rgba(255, 77, 79, 0.08)' : 'rgba(19, 30, 41, 0.08)',
+            color: toast.type === 'error' ? '#ff4d4f' : '#131e29',
           }}
         >
           {toast.message}
         </div>
       )}
 
-      <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+      <div className="mt-4 bg-white px-4 py-4 border-t border-b border-black/10">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <div className="text-sm text-white/60">Cuenta</div>
+            <div className="text-sm text-[#131e29]/60">Cuenta</div>
             <div className="text-sm font-semibold break-all">{user?.email || user?.phone || '—'}</div>
           </div>
 
           <div className="text-right">
-            <div className="text-sm text-white/60">Código de invitación</div>
+            <div className="text-sm text-[#131e29]/60">Código de invitación</div>
             <div className="flex items-center justify-end gap-2">
               <div className="text-sm font-semibold">{inviteCodeLoading ? '—' : inviteCode || '—'}</div>
               <button
                 type="button"
                 onClick={() => handleCopy(inviteCode)}
                 disabled={inviteCodeLoading || !inviteCode}
-                className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] text-white/70 hover:text-white hover:bg-white/10 transition"
+                className="inline-flex items-center gap-1 rounded-full border border-black/10 bg-white px-2.5 py-1 text-[11px] text-[#131e29]/70 hover:text-[#131e29] hover:bg-black/5 transition"
                 aria-label="Copiar código"
               >
                 <Copy className="w-3.5 h-3.5" />
@@ -250,15 +250,15 @@ const Perfil = () => {
       </div>
 
       {comisionesError ? (
-        <div className="mt-4 px-4 py-3 rounded-xl border border-red-500/40 bg-red-500/10 text-sm text-red-200">
+        <div className="mt-4 px-4 py-3 border border-red-500/40 bg-red-500/10 text-sm text-red-200">
           {comisionesError}
         </div>
       ) : null}
 
-      <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+      <div className="mt-0 px-4 py-4 border-b border-black/10 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
         {metrics.map((m) => (
-          <div key={m.label} className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            <div className="text-[12px] text-white/60 leading-tight">{m.label}</div>
+          <div key={m.label} className="border border-black/10 bg-white p-4">
+            <div className="text-[12px] text-[#131e29]/60 leading-tight">{m.label}</div>
             <div className="mt-2 text-lg font-semibold" style={neonCyanStyle}>
               {loading ? '—' : m.value}
             </div>
@@ -266,15 +266,15 @@ const Perfil = () => {
         ))}
       </div>
 
-      <div className="mt-5 rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
+      <div className="mt-0 bg-white overflow-hidden border-b border-black/10">
         <div className="px-4 py-4">
           <div className="text-sm font-semibold">Soporte</div>
-          <div className="mt-1 text-xs text-white/60">Telegram de soporte: t.me/dajoweb</div>
+          <div className="mt-1 text-xs text-[#131e29]/60">Telegram de soporte: t.me/dajoweb</div>
           <div className="mt-3 flex items-center gap-2">
             <button
               type="button"
               onClick={() => openExternal('https://t.me/dajoweb')}
-              className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/80 hover:bg-white/10 transition"
+              className="inline-flex items-center gap-2 rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-[#131e29]/80 hover:bg-black/5 transition"
             >
               <Headset className="w-4 h-4" />
               Abrir soporte
@@ -282,7 +282,7 @@ const Perfil = () => {
             <button
               type="button"
               onClick={() => handleCopy('https://t.me/dajoweb')}
-              className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/80 hover:bg-white/10 transition"
+              className="inline-flex items-center gap-2 rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-[#131e29]/80 hover:bg-black/5 transition"
             >
               <Copy className="w-4 h-4" />
               Copiar
@@ -290,41 +290,41 @@ const Perfil = () => {
           </div>
         </div>
 
-        <div className="h-px bg-white/10" />
+        <div className="h-px bg-black/10" />
         <button
           type="button"
-          className="w-full flex items-center justify-between px-4 py-4 hover:bg-white/5 transition"
+          className="w-full flex items-center justify-between px-4 py-4 hover:bg-black/5 transition"
           onClick={() => openExternal('https://t.me/+ilGl4Gd5iX02ZDE5')}
         >
           <div className="flex items-center gap-3">
-            <Send className="w-5 h-5 text-white/70" />
+            <Send className="w-5 h-5 text-[#131e29]/70" />
             <div className="text-sm font-semibold">Canal de Telegram</div>
           </div>
-          <div className="text-white/40">›</div>
+          <div className="text-[#131e29]/40">›</div>
         </button>
-        <div className="h-px bg-white/10" />
+        <div className="h-px bg-black/10" />
         <button
           type="button"
-          className="w-full flex items-center justify-between px-4 py-4 hover:bg-white/5 transition"
+          className="w-full flex items-center justify-between px-4 py-4 hover:bg-black/5 transition"
           onClick={() => openExternal('https://t.me/+7A4MLkKVNQtiN2Nh')}
         >
           <div className="flex items-center gap-3">
-            <Users className="w-5 h-5 text-white/70" />
+            <Users className="w-5 h-5 text-[#131e29]/70" />
             <div className="text-sm font-semibold">Grupo de Telegram</div>
           </div>
-          <div className="text-white/40">›</div>
+          <div className="text-[#131e29]/40">›</div>
         </button>
-        <div className="h-px bg-white/10" />
+        <div className="h-px bg-black/10" />
         <button
           type="button"
-          className="w-full flex items-center justify-between px-4 py-4 hover:bg-white/5 transition"
+          className="w-full flex items-center justify-between px-4 py-4 hover:bg-black/5 transition"
           onClick={handleSignOut}
         >
           <div className="flex items-center gap-3">
-            <LogOut className="w-5 h-5 text-white/70" />
+            <LogOut className="w-5 h-5 text-[#131e29]/70" />
             <div className="text-sm font-semibold">Cerrar sesión</div>
           </div>
-          <div className="text-white/40">›</div>
+          <div className="text-[#131e29]/40">›</div>
         </button>
       </div>
 

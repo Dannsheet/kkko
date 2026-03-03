@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../supabaseClient';
 import { linkReferral } from '../../lib/api.js';
+import styles from './Auth.module.css';
 
 const Auth = () => {
   const VISIT_KEY = 'doja_auth_has_visited';
@@ -65,8 +66,6 @@ const Auth = () => {
   const [invitationCode, setInvitationCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
-  const [isPrimaryHover, setIsPrimaryHover] = useState(false);
-  const [isPrimaryFocus, setIsPrimaryFocus] = useState(false);
 
   useEffect(() => {
     try {
@@ -226,143 +225,62 @@ const Auth = () => {
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: '#0a0a0a',
-      padding: '20px',
-      fontFamily: 'Inter, sans-serif'
-    }}>
-      <div style={{
-        width: '100%',
-        maxWidth: '280px'
-      }}>
-        <div style={{
-          textAlign: 'center',
-          marginBottom: '32px'
-        }}>
-          <img 
-            src="/logo.png" 
-            alt="Logo" 
-            style={{
-              width: '250px',
-              height: 'auto',
-              margin: '0 auto',
-              objectFit: 'contain'
-            }} 
-          />
+    <div className={styles.page}>
+      <div className={styles.bg} aria-hidden="true">
+        <video
+          className={styles.bgVideo}
+          src="https://dcdewcwelmovpacghegr.supabase.co/storage/v1/object/sign/videos/YTDown.com_YouTube_The-all-new-Kia-Seltos-l-Unveiling-Film_Media_QT8scRSBRmY_001_1080p.mp4?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9kZTljMTc5Ni01YjQ3LTQ1YTYtOTM5MC1hYjY5YzZiNjc3MzgiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ2aWRlb3MvWVREb3duLmNvbV9Zb3VUdWJlX1RoZS1hbGwtbmV3LUtpYS1TZWx0b3MtbC1VbnZlaWxpbmctRmlsbV9NZWRpYV9RVDhzY1JTQlJtWV8wMDFfMTA4MHAubXA0IiwiaWF0IjoxNzcxOTY5OTI4LCJleHAiOjE3NzI1NzQ3Mjh9.feKkYZfZpvwyJgV_jeUZSmdp1Ec1-NAzRkFou_N_GkM"
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+        />
+        <div className={styles.bgOverlay} />
+      </div>
+
+      <div className={styles.wrapper}>
+        <div className={styles.logoWrap}>
+          <img src="/logo.png" alt="Logo" className={styles.logo} />
         </div>
 
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '16px'
-        }}>
-          {toast && (
-            <div
-              style={{
-                padding: '10px 12px',
-                borderRadius: '10px',
-                border: `1px solid ${toast.type === 'error' ? '#ff4d4f' : '#8B5CF6'}`,
-                backgroundColor: toast.type === 'error' ? 'rgba(255, 77, 79, 0.10)' : 'rgba(139, 92, 246, 0.10)',
-                color: '#ffffff',
-                fontSize: '12px',
-                lineHeight: 1.3
-              }}
-            >
+        <div className={styles.stack}>
+          {toast ? (
+            <div className={toast.type === 'error' ? `${styles.toast} ${styles.toastError}` : `${styles.toast} ${styles.toastSuccess}`}>
               {toast.message}
             </div>
-          )}
+          ) : null}
 
-          <h1 style={{
-            fontSize: '18px',
-            fontWeight: '300',
-            color: '#ffffff',
-            textAlign: 'center',
-            letterSpacing: '0.5px',
-            margin: 0
-          }}>
-            {isLogin ? 'Iniciar sesión' : 'Crear cuenta'}
-          </h1>
+          <h1 className={styles.title}>{isLogin ? 'Iniciar sesión' : 'Crear cuenta'}</h1>
 
-          <form onSubmit={isLogin ? handleLogin : handleSignUp} style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '16px'
-          }}>
-            <div>
-              <>
-                <label 
-                  htmlFor="email" 
-                  style={{
-                    display: 'block',
-                    fontSize: '12px',
-                    color: '#ffffff',
-                    marginBottom: '4px',
-                    fontWeight: '500'
-                  }}
-                >
-                  Correo electrónico
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '8px 12px',
-                    backgroundColor: '#1a1a1a',
-                    color: '#ffffff',
-                    border: '1px solid #333333',
-                    borderRadius: '6px',
-                    boxSizing: 'border-box',
-                    fontSize: '14px',
-                    outline: 'none',
-                    transition: 'border-color 0.2s'
-                  }}
-                  placeholder="Correo electrónico"
-                  autoComplete='email'
-                  required
-                />
-              </>
+          <form onSubmit={isLogin ? handleLogin : handleSignUp} className={styles.form}>
+            <div className={styles.field}>
+              <label htmlFor="email" className={styles.label}>
+                Correo electrónico
+              </label>
+              <input
+                type="email"
+                id="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className={styles.input}
+                placeholder="Correo electrónico"
+                autoComplete="email"
+                required
+              />
             </div>
 
-          
-
-            <div>
-              <label 
-                htmlFor="password" 
-                style={{
-                  display: 'block',
-                  fontSize: '12px',
-                  color: '#ffffff',
-                  marginBottom: '4px',
-                  fontWeight: '500'
-                }}
-              >
+            <div className={styles.field}>
+              <label htmlFor="password" className={styles.label}>
                 Contraseña
               </label>
-              <div style={{ position: 'relative', width: '100%' }}>
+              <div className={styles.passwordWrap}>
                 <input
                   type={showPassword ? 'text' : 'password'}
                   id="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '8px 38px 8px 12px',
-                    backgroundColor: '#1a1a1a',
-                    color: '#ffffff',
-                    border: '1px solid #333333',
-                    borderRadius: '6px',
-                    boxSizing: 'border-box',
-                    fontSize: '14px',
-                    outline: 'none',
-                    transition: 'border-color 0.2s'
-                  }}
+                  className={styles.input}
                   placeholder="Contraseña"
                   autoComplete={isLogin ? 'current-password' : 'new-password'}
                   required
@@ -371,89 +289,37 @@ const Auth = () => {
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
                   aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-                  style={{
-                    position: 'absolute',
-                    top: '50%',
-                    right: '10px',
-                    transform: 'translateY(-50%)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: 0,
-                    background: 'transparent',
-                    border: 'none',
-                    cursor: 'pointer',
-                    color: '#888888'
-                  }}
+                  className={styles.eyeBtn}
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M2 12C4.5 7.5 8 5 12 5C16 5 19.5 7.5 22 12C19.5 16.5 16 19 12 19C8 19 4.5 16.5 2 12Z" stroke="currentColor" strokeWidth="1.6" />
                     <path d="M12 15.5C13.933 15.5 15.5 13.933 15.5 12C15.5 10.067 13.933 8.5 12 8.5C10.067 8.5 8.5 10.067 8.5 12C8.5 13.933 10.067 15.5 12 15.5Z" stroke="currentColor" strokeWidth="1.6" />
-                    {showPassword ? (
-                      <path d="M4 4L20 20" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-                    ) : null}
+                    {showPassword ? <path d="M4 4L20 20" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /> : null}
                   </svg>
                 </button>
               </div>
+
               {isLogin ? (
-                <div style={{
-                  marginTop: '8px',
-                  display: 'flex',
-                  justifyContent: 'flex-end'
-                }}>
-                  <button
-                    type="button"
-                    onClick={handleForgotPassword}
-                    disabled={loading}
-                    style={{
-                      color: '#8B5CF6',
-                      background: 'none',
-                      border: 'none',
-                      padding: 0,
-                      cursor: loading ? 'not-allowed' : 'pointer',
-                      fontSize: '11px',
-                      textDecoration: 'underline',
-                      opacity: loading ? 0.7 : 1
-                    }}
-                  >
+                <div className={styles.forgotWrap}>
+                  <button type="button" onClick={handleForgotPassword} disabled={loading} className={styles.linkBtnSmall}>
                     ¿Olvidaste tu contraseña?
                   </button>
                 </div>
               ) : null}
             </div>
 
-            {!isLogin && (
-              <div>
-                <label 
-                  htmlFor="confirmPassword" 
-                  style={{
-                    display: 'block',
-                    fontSize: '12px',
-                    color: '#ffffff',
-                    marginBottom: '4px',
-                    fontWeight: '500'
-                  }}
-                >
+            {!isLogin ? (
+              <div className={styles.field}>
+                <label htmlFor="confirmPassword" className={styles.label}>
                   Repetir contraseña
                 </label>
-                <div style={{ position: 'relative', width: '100%' }}>
+                <div className={styles.passwordWrap}>
                   <input
                     type={showConfirmPassword ? 'text' : 'password'}
                     id="confirmPassword"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '8px 38px 8px 12px',
-                      backgroundColor: '#1a1a1a',
-                      color: '#ffffff',
-                      border: '1px solid #333333',
-                      borderRadius: '6px',
-                      boxSizing: 'border-box',
-                      fontSize: '14px',
-                      outline: 'none',
-                      transition: 'border-color 0.2s'
-                    }}
+                    className={styles.input}
                     placeholder="Repetir contraseña"
                     autoComplete="new-password"
                     required
@@ -462,44 +328,21 @@ const Auth = () => {
                     type="button"
                     onClick={() => setShowConfirmPassword((v) => !v)}
                     aria-label={showConfirmPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-                    style={{
-                      position: 'absolute',
-                      top: '50%',
-                      right: '10px',
-                      transform: 'translateY(-50%)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      padding: 0,
-                      background: 'transparent',
-                      border: 'none',
-                      cursor: 'pointer',
-                      color: '#888888'
-                    }}
+                    className={styles.eyeBtn}
                   >
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path d="M2 12C4.5 7.5 8 5 12 5C16 5 19.5 7.5 22 12C19.5 16.5 16 19 12 19C8 19 4.5 16.5 2 12Z" stroke="currentColor" strokeWidth="1.6" />
                       <path d="M12 15.5C13.933 15.5 15.5 13.933 15.5 12C15.5 10.067 13.933 8.5 12 8.5C10.067 8.5 8.5 10.067 8.5 12C8.5 13.933 10.067 15.5 12 15.5Z" stroke="currentColor" strokeWidth="1.6" />
-                      {showConfirmPassword ? (
-                        <path d="M4 4L20 20" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-                      ) : null}
+                      {showConfirmPassword ? <path d="M4 4L20 20" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /> : null}
                     </svg>
                   </button>
                 </div>
               </div>
-            )}
-  {!isLogin && (
-              <div>
-                <label 
-                  htmlFor="invitationCode" 
-                  style={{
-                    display: 'block',
-                    fontSize: '12px',
-                    color: '#ffffff',
-                    marginBottom: '4px',
-                    fontWeight: '500'
-                  }}
-                >
+            ) : null}
+
+            {!isLogin ? (
+              <div className={styles.field}>
+                <label htmlFor="invitationCode" className={styles.label}>
                   Código de invitación
                 </label>
                 <input
@@ -507,78 +350,20 @@ const Auth = () => {
                   id="invitationCode"
                   value={invitationCode}
                   onChange={(e) => setInvitationCode(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '8px 12px',
-                    backgroundColor: '#1a1a1a',
-                    color: '#ffffff',
-                    border: '1px solid #333333',
-                    borderRadius: '6px',
-                    boxSizing: 'border-box',
-                    fontSize: '14px',
-                    outline: 'none',
-                    transition: 'border-color 0.2s'
-                  }}
+                  className={styles.input}
                   placeholder="Código de invitación"
                 />
               </div>
-            )}
-            <button
-              type="submit"
-              disabled={loading}
-              onMouseEnter={() => {
-                if (!loading) setIsPrimaryHover(true);
-              }}
-              onMouseLeave={() => setIsPrimaryHover(false)}
-              onFocus={() => {
-                if (!loading) setIsPrimaryFocus(true);
-              }}
-              onBlur={() => setIsPrimaryFocus(false)}
-              style={{
-                width: '100%',
-                padding: '8px',
-                backgroundColor: '#8B5CF6',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: '6px',
-                fontSize: '14px',
-                fontWeight: '500',
-                cursor: loading ? 'not-allowed' : 'pointer',
-                opacity: loading ? 0.5 : 1,
-                transform: isPrimaryHover || isPrimaryFocus ? 'translateY(-1px)' : 'translateY(0px)',
-                filter: isPrimaryHover || isPrimaryFocus ? 'brightness(1.05)' : 'brightness(1)',
-                boxShadow:
-                  isPrimaryHover || isPrimaryFocus
-                    ? '0 0 0 1px rgba(139, 92, 246, 0.35), 0 0 18px rgba(139, 92, 246, 0.55), 0 0 42px rgba(139, 92, 246, 0.25)'
-                    : '0 0 0 1px rgba(139, 92, 246, 0.18), 0 10px 24px rgba(0, 0, 0, 0.35)',
-                transition: 'background-color 0.2s, box-shadow 0.2s, transform 0.2s, filter 0.2s'
-              }}
-            >
-              {loading ? 'Cargando...' : (isLogin ? 'Iniciar sesión' : 'Registrarse')}
+            ) : null}
+
+            <button type="submit" disabled={loading} className={styles.submitBtn}>
+              {loading ? 'Cargando...' : isLogin ? 'Iniciar sesión' : 'Registrarse'}
             </button>
           </form>
 
-          <div style={{
-            textAlign: 'center',
-            paddingTop: '4px',
-            fontSize: '11px'
-          }}>
-            <span style={{ color: '#888888' }}>
-              {isLogin ? '¿No tienes cuenta?' : '¿Ya tienes cuenta?'}
-            </span>
-            <button
-              type="button"
-              onClick={() => setIsLogin(!isLogin)}
-              style={{
-                color: '#8B5CF6',
-                background: 'none',
-                border: 'none',
-                marginLeft: '4px',
-                cursor: 'pointer',
-                fontSize: '11px',
-                textDecoration: 'underline'
-              }}
-            >
+          <div className={styles.footer}>
+            <span className={styles.muted}>{isLogin ? '¿No tienes cuenta?' : '¿Ya tienes cuenta?'}</span>
+            <button type="button" onClick={() => setIsLogin(!isLogin)} className={styles.linkBtn}>
               {isLogin ? 'Regístrate' : 'Inicia sesión'}
             </button>
           </div>

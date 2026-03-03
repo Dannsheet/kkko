@@ -230,7 +230,7 @@ const VIP = () => {
   };
 
   return (
-    <div className="min-h-full bg-doja-bg text-white p-4">
+    <div className="min-h-full bg-white text-[#131e29] p-0">
       <div className="relative flex items-center justify-between min-h-[32px]">
         <h1 className="pageTitleNeon absolute left-1/2 -translate-x-1/2 text-2xl font-bold">VIP</h1>
         <div className="flex items-center gap-3">
@@ -245,7 +245,7 @@ const VIP = () => {
           </div>
           <button
             type="button"
-            className="text-sm text-white/60 hover:text-doja-light-cyan transition"
+            className="text-sm text-[#131e29]/60 hover:text-[#131e29] transition"
             onClick={() => navigate('/dashboard')}
           >
             Volver
@@ -257,9 +257,9 @@ const VIP = () => {
         <div
           className="mt-4 px-4 py-3 rounded-xl border text-sm font-medium"
           style={{
-            borderColor: toast.type === 'error' ? '#ff4d4f' : '#8B5CF6',
-            backgroundColor: toast.type === 'error' ? 'rgba(255, 77, 79, 0.1)' : 'rgba(139, 92, 246, 0.1)',
-            color: toast.type === 'error' ? '#ff4d4f' : '#8B5CF6',
+            borderColor: toast.type === 'error' ? '#ff4d4f' : '#131e29',
+            backgroundColor: toast.type === 'error' ? 'rgba(255, 77, 79, 0.08)' : 'rgba(19, 30, 41, 0.08)',
+            color: toast.type === 'error' ? '#ff4d4f' : '#131e29',
           }}
         >
           {toast.message}
@@ -269,18 +269,18 @@ const VIP = () => {
       {loadError && !loading && (
         <div className="mt-4 rounded-2xl border border-red-500/30 bg-red-500/10 p-4">
           <div className="text-sm font-semibold text-red-400">Error cargando VIP</div>
-          <div className="mt-2 text-xs text-white/70 font-mono break-words">{loadError}</div>
+          <div className="mt-2 text-xs text-[#131e29]/70 font-mono break-words">{loadError}</div>
         </div>
       )}
 
-      <div className="mt-5 rounded-2xl border border-white/10 bg-doja-dark/70 p-4">
+      <div className="mt-5 bg-white px-4 py-4 border-t border-b border-black/10">
         <div className="flex items-center justify-between">
-          <div className="text-sm text-white/70">Balance</div>
-          <div className="text-lg font-semibold text-doja-cyan">{Number(balance || 0).toFixed(2)} USDT</div>
+          <div className="text-sm text-[#131e29]/70">Balance</div>
+          <div className="text-lg font-semibold text-[#131e29]">{Number(balance || 0).toFixed(2)} USDT</div>
         </div>
         <button
           type="button"
-          className="mt-3 w-full rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 py-3 text-sm font-semibold transition"
+          className="mt-3 w-full rounded-xl bg-[#131e29] hover:opacity-90 border border-[#131e29] py-3 text-sm font-semibold text-white transition"
           onClick={() => navigate('/wallet')}
         >
           Recargar
@@ -288,13 +288,13 @@ const VIP = () => {
       </div>
 
       {activeSubsView.length ? (
-        <div className="mt-4 rounded-2xl border border-doja-cyan/30 bg-doja-cyan/10 p-4">
-          <div className="mt-3 flex items-center gap-2 text-doja-cyan font-semibold">
+        <div className="mt-0 bg-white px-4 py-4 border-b border-black/10">
+          <div className="mt-3 flex items-center gap-2 text-[#131e29] font-semibold">
             <CheckCircle2 className="w-5 h-5" />
             Suscripción activa
           </div>
 
-          <div className="mt-3 space-y-3">
+          <div className="mt-3 space-y-2">
             {activeSubsView.map((s) => {
               const cd = countdownFor(s?.expiryMs);
               const expiryLabel = (() => {
@@ -304,19 +304,19 @@ const VIP = () => {
               })();
 
               return (
-                <div key={s?.subscription_id || s?.plan_id} className="rounded-xl border border-white/10 bg-white/5 p-3">
+                <div key={s?.subscription_id || s?.plan_id} className="border border-black/10 bg-white p-3">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <div className="text-sm text-white/70">Plan</div>
-                      <div className="text-sm font-semibold text-white">
+                      <div className="text-sm text-[#131e29]/70">Plan</div>
+                      <div className="text-sm font-semibold text-[#131e29]">
                         <span className="font-mono">{s?.nombre || `#${s?.plan_id}`}</span>
                       </div>
-                      <div className="mt-1 text-xs text-white/60">Expira: {expiryLabel}</div>
+                      <div className="mt-1 text-xs text-[#131e29]/60">Expira: {expiryLabel}</div>
                     </div>
                     {cd ? (
                       <div className="text-right">
-                        <div className="text-[11px] text-white/60">Termina en</div>
-                        <div className="mt-1 text-sm font-extrabold text-doja-cyan">
+                        <div className="text-[11px] text-[#131e29]/60">Termina en</div>
+                        <div className="mt-1 text-sm font-extrabold text-[#131e29]">
                           {cd.days}d {String(cd.hours).padStart(2, '0')}h {String(cd.minutes).padStart(2, '0')}m
                         </div>
                       </div>
@@ -329,18 +329,18 @@ const VIP = () => {
         </div>
       ) : null}
 
-      <div className="mt-6">
-        <div className="text-sm text-white/70">Planes disponibles</div>
+      <div className="mt-0 px-4 py-5">
+        <div className="text-sm text-[#131e29]/70">Planes disponibles</div>
 
         {loading ? (
-          <div className="mt-6 flex items-center justify-center text-white/60">
+          <div className="mt-6 flex items-center justify-center text-[#131e29]/60">
             <Loader2 className="w-5 h-5 animate-spin mr-2" />
             Cargando...
           </div>
         ) : (
           <div className="mt-4 grid grid-cols-1 gap-4">
             {!loadError && plans.length === 0 && (
-              <div className="rounded-2xl border border-white/10 bg-doja-dark/70 p-4 text-sm text-white/70">
+              <div className="border border-black/10 bg-white p-4 text-sm text-[#131e29]/70">
                 No hay planes disponibles para mostrar.
               </div>
             )}
@@ -356,7 +356,7 @@ const VIP = () => {
               const isDisabled = Boolean(isBuying || alreadyActive || maxReached);
 
               return (
-                <div key={plan.id} className="rounded-2xl border border-white/10 bg-doja-dark/70 p-4">
+                <div key={plan.id} className="border border-black/10 bg-white p-4">
                   <button
                     type="button"
                     disabled={isDisabled}
@@ -364,37 +364,37 @@ const VIP = () => {
                     className={
                       'w-full rounded-xl py-3 text-sm font-extrabold transition ' +
                       (alreadyActive || maxReached
-                        ? 'bg-white/5 border border-white/10 text-white/40 cursor-not-allowed'
-                        : 'bg-[rgba(139,92,246,0.95)] text-white shadow-[0_0_18px_rgba(139,92,246,0.65),0_0_48px_rgba(139,92,246,0.35)] hover:bg-[rgba(139,92,246,1)] hover:shadow-[0_0_26px_rgba(139,92,246,0.85),0_0_62px_rgba(139,92,246,0.45)]')
+                        ? 'bg-black/5 border border-black/10 text-[#131e29]/40 cursor-not-allowed'
+                        : 'bg-[#131e29] text-white hover:opacity-90')
                     }
                   >
                     {isBuying ? 'Procesando...' : alreadyActive ? 'Activo' : maxReached ? 'Límite alcanzado' : 'Suscribirse'}
                   </button>
 
-                  <div className="mt-3 text-center text-[12px] text-white/70">
+                  <div className="mt-3 text-center text-[12px] text-[#131e29]/70">
                     Compra para recibir las siguientes ganancias
                   </div>
 
                   <div className="mt-4 flex items-center justify-center gap-2">
-                    <Crown className="w-5 h-5 text-doja-cyan" />
+                    <Crown className="w-5 h-5 text-[#131e29]" />
                     <div className="text-lg font-semibold">{plan.nombre}</div>
                   </div>
 
                   <div className="mt-3 grid grid-cols-2 gap-3">
-                    <div className="rounded-xl border border-white/10 bg-white/5 p-3 text-center">
-                      <div className="text-[11px] text-white/60">Precio</div>
-                      <div className="mt-1 text-base font-extrabold text-doja-cyan">${Number(price).toFixed(2)}</div>
+                    <div className="rounded-xl border border-black/10 bg-white p-3 text-center">
+                      <div className="text-[11px] text-[#131e29]/60">Precio</div>
+                      <div className="mt-1 text-base font-extrabold text-[#131e29]">${Number(price).toFixed(2)}</div>
                     </div>
-                    <div className="rounded-xl border border-white/10 bg-white/5 p-3 text-center">
-                      <div className="text-[11px] text-white/60">Ganancia diaria</div>
-                      <div className="mt-1 text-base font-extrabold text-doja-cyan">
+                    <div className="rounded-xl border border-black/10 bg-white p-3 text-center">
+                      <div className="text-[11px] text-[#131e29]/60">Ganancia diaria</div>
+                      <div className="mt-1 text-base font-extrabold text-[#131e29]">
                         {typeof daily === 'number' ? `$${daily}` : '—'}
                       </div>
                     </div>
                   </div>
 
                   {plan?.limite_tareas != null ? (
-                    <div className="mt-3 text-center text-xs text-white/60">
+                    <div className="mt-3 text-center text-xs text-[#131e29]/60">
                       Límite de tareas: {plan.limite_tareas}
                     </div>
                   ) : null}

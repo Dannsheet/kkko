@@ -542,14 +542,14 @@ const WalletPage = () => {
   }, [normalizedHistory, withdrawCreated?.estado, withdrawCreated?.id]);
 
   return (
-    <div className="min-h-screen bg-doja-bg text-white">
+    <div className="min-h-screen bg-white text-[#131e29]">
       <div className="mx-auto w-full max-w-[520px] px-4 py-6">
         <div className="flex items-center justify-between">
           <h1 className="text-[16px] font-semibold">Billetera</h1>
           <div className="flex items-center gap-2">
             <button
               type="button"
-              className="rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 px-3 py-2 text-[12px] transition"
+              className="rounded-xl bg-white hover:bg-black/5 border border-black/10 px-3 py-2 text-[12px] transition"
               onClick={() => {
                 loadCuenta();
               }}
@@ -562,7 +562,7 @@ const WalletPage = () => {
             </button>
             <button
               type="button"
-              className="text-[12px] text-white/70 hover:text-white"
+              className="text-[12px] text-[#131e29]/70 hover:text-[#131e29]"
               onClick={() => navigate('/dashboard')}
             >
               Volver
@@ -574,27 +574,27 @@ const WalletPage = () => {
           <div
             className="mt-4 px-4 py-3 rounded-xl border text-sm font-medium"
             style={{
-              borderColor: toast.type === 'error' ? '#ff4d4f' : '#8B5CF6',
-              backgroundColor: toast.type === 'error' ? 'rgba(255, 77, 79, 0.1)' : 'rgba(139, 92, 246, 0.1)',
-              color: toast.type === 'error' ? '#ff4d4f' : '#8B5CF6',
+              borderColor: toast.type === 'error' ? '#ff4d4f' : '#131e29',
+              backgroundColor: toast.type === 'error' ? 'rgba(255, 77, 79, 0.08)' : 'rgba(19, 30, 41, 0.08)',
+              color: toast.type === 'error' ? '#ff4d4f' : '#131e29',
             }}
           >
             {toast.message}
           </div>
         )}
 
-        <div className="mt-4 rounded-2xl bg-white/5 border border-white/10 p-4">
+        <div className="mt-4 rounded-2xl bg-white border border-black/10 p-4">
           <div className="flex items-center justify-between">
-            <div className="text-[12px] text-white/70">Saldo interno</div>
-            <div className="text-[16px] font-semibold text-doja-cyan">{formattedBalance} USDT</div>
+            <div className="text-[12px] text-[#131e29]/70">Saldo interno</div>
+            <div className="text-[16px] font-semibold text-[#131e29]">{formattedBalance} USDT</div>
           </div>
           <div className="mt-2 flex items-center justify-between">
-            <div className="text-[12px] text-white/70">Total ganado</div>
-            <div className="text-[12px] text-white/80">{formattedSaldoGanancias} USDT</div>
+            <div className="text-[12px] text-[#131e29]/70">Total ganado</div>
+            <div className="text-[12px] text-[#131e29]/80">{formattedSaldoGanancias} USDT</div>
           </div>
           <div className="mt-2 flex items-center justify-between">
-            <div className="text-[12px] text-white/70">Estado</div>
-            <div className="text-[12px] text-white/80">{estado}</div>
+            <div className="text-[12px] text-[#131e29]/70">Estado</div>
+            <div className="text-[12px] text-[#131e29]/80">{estado}</div>
           </div>
         </div>
 
@@ -603,36 +603,36 @@ const WalletPage = () => {
             type="button"
             onClick={handleCreateDepositAddress}
             disabled={depositLoading}
-            className="rounded-2xl bg-doja-cyan/15 hover:bg-doja-cyan/20 border border-doja-cyan/30 p-4 text-left transition disabled:opacity-50"
+            className="rounded-2xl bg-[#131e29] hover:opacity-90 border border-[#131e29] p-4 text-left transition disabled:opacity-50"
           >
-            <div className="flex items-center gap-2 text-doja-cyan font-semibold">
+            <div className="flex items-center gap-2 text-white font-semibold">
               <QrCode className="w-5 h-5" />
               Recargar
             </div>
-            <div className="mt-1 text-[12px] text-white/70">Genera tu dirección de depósito</div>
+            <div className="mt-1 text-[12px] text-white/80">Genera tu dirección de depósito</div>
           </button>
 
           <button
             type="button"
             onClick={openWithdraw}
             disabled={!isCuentaActiva || vipLoading}
-            className="rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 p-4 text-left transition disabled:opacity-50"
+            className="rounded-2xl bg-white hover:bg-black/5 border border-black/10 p-4 text-left transition disabled:opacity-50"
           >
-            <div className="flex items-center gap-2 text-white font-semibold">
+            <div className="flex items-center gap-2 text-[#131e29] font-semibold">
               <Send className="w-5 h-5" />
               Retirar
             </div>
-            <div className="mt-1 text-[12px] text-white/70">Solicitud de retiro (PIN)</div>
+            <div className="mt-1 text-[12px] text-[#131e29]/70">Solicitud de retiro (PIN)</div>
           </button>
         </div>
 
         <button
           type="button"
           onClick={openWithdrawSupportTelegram}
-          className="mt-3 w-full rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 p-4 text-left transition"
+          className="mt-3 w-full rounded-2xl bg-white hover:bg-black/5 border border-black/10 p-4 text-left transition"
         >
-          <div className="text-[13px] font-semibold text-white/90">Problema al retirar</div>
-          <div className="mt-1 text-[12px] text-white/70">Hablar con soporte en Telegram</div>
+          <div className="text-[13px] font-semibold text-[#131e29]">Problema al retirar</div>
+          <div className="mt-1 text-[12px] text-[#131e29]/70">Hablar con soporte en Telegram</div>
         </button>
 
         {!isCuentaActiva ? (
