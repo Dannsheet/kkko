@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Award, Gift, Home, User, UserPlus } from 'lucide-react';
+import { Award, Home, User } from 'lucide-react';
 import './BottomTabBar.css';
 
 const BottomTabBar = () => {
@@ -9,10 +9,8 @@ const BottomTabBar = () => {
 
   const tabs = useMemo(
     () => [
-      { id: 'home', label: 'Hogar', icon: Home, to: '/dashboard' },
-      { id: 'promocion', label: 'Análisis', icon: Gift, to: '/promocion' },
-      { id: 'vip', label: 'VIP', icon: Award, to: '/vip' },
-      { id: 'invitar', label: 'Invitar amigos', icon: UserPlus, to: '/invitar' },
+      { id: 'home', label: 'Inicio', icon: Home, to: '/dashboard' },
+      { id: 'vip', label: 'Reseñas', icon: Award, to: '/vip' },
       { id: 'perfil', label: 'Perfil', icon: User, to: '/perfil' },
     ],
     [],
@@ -20,9 +18,7 @@ const BottomTabBar = () => {
 
   const activeId = useMemo(() => {
     const p = location.pathname;
-    if (p.startsWith('/promocion')) return 'promocion';
     if (p.startsWith('/vip')) return 'vip';
-    if (p.startsWith('/invitar')) return 'invitar';
     if (p.startsWith('/perfil')) return 'perfil';
     if (p.startsWith('/dashboard')) return 'home';
     return null;

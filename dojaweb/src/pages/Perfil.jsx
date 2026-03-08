@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Copy, Headset, LogOut, Send, Users } from 'lucide-react';
+import { ArrowLeftRight, BookOpen, Copy, Gift, Headset, LogOut, Send, Users, Wallet } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { getCuentaInfo, getMe, getMyReferralProfile, getMyReferralStats } from '../lib/api.js';
@@ -190,7 +190,7 @@ const Perfil = () => {
   return (
     <div className="min-h-full bg-white text-[#131e29] p-0">
       <div className="relative flex items-center justify-between min-h-[32px]">
-        <h1 className="pageTitleNeon absolute left-1/2 -translate-x-1/2 text-2xl font-bold">PERFIL</h1>
+        <h1 className="pageTitleNeon absolute left-1/2 -translate-x-1/2 text-2xl font-bold">A MI</h1>
         <button
           type="button"
           onClick={() => navigate('/dashboard')}
@@ -289,6 +289,58 @@ const Perfil = () => {
             </button>
           </div>
         </div>
+
+        <div className="h-px bg-black/10" />
+        <button
+          type="button"
+          className="w-full flex items-center justify-between px-4 py-4 hover:bg-black/5 transition"
+          onClick={() => navigate('/wallet')}
+        >
+          <div className="flex items-center gap-3">
+            <Wallet className="w-5 h-5 text-[#131e29]/70" />
+            <div className="text-sm font-semibold">Billetera</div>
+          </div>
+          <div className="text-[#131e29]/40">›</div>
+        </button>
+
+        <div className="h-px bg-black/10" />
+        <button
+          type="button"
+          className="w-full flex items-center justify-between px-4 py-4 hover:bg-black/5 transition"
+          onClick={() => navigate('/invitar')}
+        >
+          <div className="flex items-center gap-3">
+            <Gift className="w-5 h-5 text-[#131e29]/70" />
+            <div className="text-sm font-semibold">Invitar amigo</div>
+          </div>
+          <div className="text-[#131e29]/40">›</div>
+        </button>
+
+        <div className="h-px bg-black/10" />
+        <button
+          type="button"
+          className="w-full flex items-center justify-between px-4 py-4 hover:bg-black/5 transition"
+          onClick={() => navigate('/wallet', { state: { openWithdraw: true } })}
+        >
+          <div className="flex items-center gap-3">
+            <ArrowLeftRight className="w-5 h-5 text-[#131e29]/70" />
+            <div className="text-sm font-semibold">Retirar</div>
+          </div>
+          <div className="text-[#131e29]/40">›</div>
+        </button>
+
+        <div className="h-px bg-black/10" />
+        <button
+          type="button"
+          className="w-full flex items-center justify-between px-4 py-4 hover:bg-black/5 transition"
+          onClick={() => navigate('/tutorial')}
+        >
+          <div className="flex items-center gap-3">
+            <BookOpen className="w-5 h-5 text-[#131e29]/70" />
+            <div className="text-sm font-semibold">Tutorial</div>
+          </div>
+          <div className="text-[#131e29]/40">›</div>
+        </button>
 
         <div className="h-px bg-black/10" />
         <button

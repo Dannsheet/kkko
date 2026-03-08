@@ -289,6 +289,8 @@ export const getMyPlans = async () => {
 
 export const getReviewsStatus = () => apiFetch('/api/reviews/status');
 
+export const getReviewsModels = () => apiFetch('/api/reviews/models');
+
 export const submitReview = ({ modelo_id, estrellas, comentario, plan_id } = {}) =>
   apiFetch('/api/reviews/enviar', {
     method: 'POST',

@@ -5,7 +5,6 @@ import ProtectedRoute from './routes/ProtectedRoute';
 import AuthPage from './pages/AuthPage';
 import Dashboard from './pages/Dashboard';
 import ProtectedLayout from './layouts/ProtectedLayout';
-import Promocion from './pages/Promocion';
 import VIP from './pages/VIP';
 import Invitar from './pages/Invitar';
 import Perfil from './pages/Perfil';
@@ -67,7 +66,6 @@ function App() {
             </Route>
             <Route element={<ProtectedLayout />}>
               <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/promocion" element={<Promocion />} />
               <Route path="/vip" element={<VIP />} />
               <Route path="/invitar" element={<Invitar />} />
               <Route path="/perfil" element={<Perfil />} />
