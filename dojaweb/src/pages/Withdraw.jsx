@@ -5,7 +5,7 @@ const Withdraw = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    navigate('/wallet', { replace: true, state: { openWithdraw: true } });
+    navigate('/perfil', { replace: true, state: { openWithdraw: true } });
   }, [navigate]);
 
   return (

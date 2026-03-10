@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { AuthProvider } from './lib/auth.jsx';
 import ProtectedRoute from './routes/ProtectedRoute';
 import AuthPage from './pages/AuthPage';
@@ -9,7 +9,6 @@ import VIP from './pages/VIP';
 import Invitar from './pages/Invitar';
 import Perfil from './pages/Perfil';
 import Admin from './pages/Admin';
-import Wallet from './pages/Wallet';
 import Withdraw from './pages/Withdraw';
 import Tutorial from './pages/Tutorial';
 import ResetPassword from './pages/ResetPassword';
@@ -70,7 +69,7 @@ function App() {
               <Route path="/invitar" element={<Invitar />} />
               <Route path="/perfil" element={<Perfil />} />
             </Route>
-            <Route path="/wallet" element={<Wallet />} />
+            <Route path="/wallet" element={<Navigate to="/perfil" replace />} />
             <Route path="/retirar" element={<Withdraw />} />
             <Route path="/tutorial" element={<Tutorial />} />
           </Route>

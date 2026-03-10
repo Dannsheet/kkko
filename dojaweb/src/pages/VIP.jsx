@@ -217,24 +217,46 @@ const VIP = () => {
     return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
   }, []);
 
+  const getMsUntilEcuadorMidnight = useCallback(
+    (now) => {
+      const nowDate = now instanceof Date ? now : new Date(Number(now || Date.now()));
+      const parts = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'America/Guayaquil',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      }).formatToParts(nowDate);
+      const year = Number(parts.find((p) => p.type === 'year')?.value);
+      const month = Number(parts.find((p) => p.type === 'month')?.value);
+      const day = Number(parts.find((p) => p.type === 'day')?.value);
+      if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) return null;
+
+      const startLocal = new Date(nowDate);
+      startLocal.setHours(0, 0, 0, 0);
+      const tzOffsetNow = startLocal.getTime() - Date.parse(startLocal.toLocaleString('en-US', { timeZone: 'America/Guayaquil' }));
+      const ecuMidnight = Date.UTC(year, month - 1, day + 1, 0, 0, 0, 0) + tzOffsetNow;
+      const diff = ecuMidnight - nowDate.getTime();
+      return Number.isFinite(diff) ? Math.max(0, diff) : null;
+    },
+    [],
+  );
+
   const reviewsPlans = useMemo(() => {
     const rows = Array.isArray(reviewsStatus?.planes) ? reviewsStatus.planes : [];
     return rows
       .map((p) => {
-        const nextIso = p?.next_available_at ?? reviewsStatus?.next_available_at ?? null;
-        const nextMs = nextIso ? new Date(String(nextIso)).getTime() : null;
-        const diffMs = nextMs && Number.isFinite(nextMs) ? Math.max(0, nextMs - Number(nowTs || 0)) : null;
+        const diffMs = getMsUntilEcuadorMidnight(Number(nowTs || 0));
         return {
           plan_id: Number(p?.plan_id),
           puede_resenar: Boolean(p?.puede_resenar ?? p?.puede_ver ?? false),
           recompensa: Number(p?.recompensa ?? 0) || 0,
-          next_available_at: nextIso,
+          next_available_at: p?.next_available_at ?? reviewsStatus?.next_available_at ?? null,
           countdown: diffMs != null ? { diffMs, text: formatCountdown(diffMs) } : null,
           modelo: p?.modelo || null,
         };
       })
       .filter((p) => Number.isFinite(p?.plan_id));
-  }, [formatCountdown, nowTs, reviewsStatus]);
+  }, [formatCountdown, getMsUntilEcuadorMidnight, nowTs, reviewsStatus]);
 
   const currentReviewPlan = useMemo(() => {
     if (!Number.isFinite(Number(reviewPlanId))) return null;
@@ -416,7 +438,6 @@ const VIP = () => {
 
       <div className="mt-0 px-4 py-5">
         <div className="text-sm font-semibold text-[#131e29]">Reseñas</div>
-        <div className="mt-1 text-xs text-[#131e29]/60">Compra planes, genera ingresos y deja tus reseñas cada 24h.</div>
       </div>
 
       {user && reviewsPlans.length ? (
@@ -506,7 +527,7 @@ const VIP = () => {
 
               {!currentReviewPlan?.puede_resenar ? (
                 <div className="mt-3 text-xs text-[#131e29]/60">
-                  Debes esperar 24h para enviar otra reseña.
+                  Debes esperar hasta las 00:00 (hora Ecuador) para enviar otra reseña.
                   <div className="mt-1">
                     Próxima reseña en{' '}
                     <span className="font-extrabold text-[#131e29]">{currentReviewPlan?.countdown?.text || '—'}</span>
@@ -624,13 +645,13 @@ const VIP = () => {
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-semibold truncate">{modelName}</div>
                     <div className="mt-2 grid grid-cols-3 gap-2">
-                      <div className="rounded-xl border border-black/10 bg-white px-2 py-2 text-center">
-                        <div className="text-[10px] text-[#131e29]/60">Inversión</div>
-                        <div className="mt-0.5 text-xs font-extrabold text-[#131e29]">${Number(price).toFixed(2)}</div>
+                      <div className="rounded-xl border border-black/10 bg-white px-1.5 py-1.5 sm:px-2 sm:py-2 text-center min-w-0">
+                        <div className="text-[9px] sm:text-[10px] text-[#131e29]/60 leading-tight">Inversión</div>
+                        <div className="mt-0.5 text-[11px] sm:text-xs font-extrabold text-[#131e29] truncate">${Number(price).toFixed(2)}</div>
                       </div>
-                      <div className="rounded-xl border border-black/10 bg-white px-2 py-2 text-center">
-                        <div className="text-[10px] text-[#131e29]/60">Ganancias</div>
-                        <div className="mt-0.5 text-xs font-extrabold text-[#131e29]">
+                      <div className="rounded-xl border border-black/10 bg-white px-1.5 py-1.5 sm:px-2 sm:py-2 text-center min-w-0">
+                        <div className="text-[9px] sm:text-[10px] text-[#131e29]/60 leading-tight">Ganancias</div>
+                        <div className="mt-0.5 text-[11px] sm:text-xs font-extrabold text-[#131e29] truncate">
                           {typeof daily === 'number' ? `$${Number(daily).toFixed(2)}` : '—'}
                         </div>
                       </div>
@@ -639,7 +660,7 @@ const VIP = () => {
                         disabled={isDisabled}
                         onClick={() => handleBuy(plan)}
                         className={
-                          'rounded-xl border px-2 py-2 text-center text-xs font-extrabold transition ' +
+                          'rounded-xl border px-1.5 py-1.5 sm:px-2 sm:py-2 text-center text-[11px] sm:text-xs font-extrabold transition truncate ' +
                           (alreadyActive || maxReached
                             ? 'bg-black/5 border-black/10 text-[#131e29]/40 cursor-not-allowed'
                             : 'bg-[#131e29] border-[#131e29] text-white hover:opacity-90')
