@@ -5,15 +5,9 @@ import AnnouncementsModal from '../components/Announcements/AnnouncementsModal';
 
 const ProtectedLayout = () => {
   return (
-    <div className="flex flex-col h-screen">
+    <div className="min-h-screen bg-white text-[#131e29] pb-20">
       <AnnouncementsModal />
-      <div
-        className="flex-1 min-h-0 overflow-y-auto"
-        data-scroll-container="main"
-        style={{ WebkitOverflowScrolling: 'touch' }}
-      >
-        <Outlet />
-      </div>
+      <Outlet />
       <BottomTabBar />
     </div>
   );

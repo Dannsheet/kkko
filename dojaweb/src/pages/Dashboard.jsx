@@ -27,12 +27,6 @@ const Dashboard = () => {
                 calidad. Desde nuestros inicios, hemos trabajado para superar las expectativas de nuestros clientes y liderar
                 el mercado automovilístico global.
               </div>
-              <button
-                type="button"
-                className="mt-6 inline-flex items-center justify-center rounded-2xl bg-[#1f3d35]/90 hover:bg-[#1f3d35] px-6 py-3 text-sm font-extrabold text-white transition"
-              >
-                Conoce más
-              </button>
             </div>
           </div>
         </div>

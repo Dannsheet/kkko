@@ -217,29 +217,54 @@ const VIP = () => {
     return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
   }, []);
 
-  const getMsUntilEcuadorMidnight = useCallback(
-    (now) => {
-      const nowDate = now instanceof Date ? now : new Date(Number(now || Date.now()));
-      const parts = new Intl.DateTimeFormat('en-CA', {
-        timeZone: 'America/Guayaquil',
+  const getMsUntilEcuadorMidnight = useCallback((now) => {
+    const nowDate = now instanceof Date ? now : new Date(Number(now || Date.now()));
+    if (!Number.isFinite(nowDate.getTime())) return null;
+
+    const tz = 'America/Guayaquil';
+
+    const ymdParts = new Intl.DateTimeFormat('en-CA', {
+      timeZone: tz,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).formatToParts(nowDate);
+
+    const year = Number(ymdParts.find((p) => p.type === 'year')?.value);
+    const month = Number(ymdParts.find((p) => p.type === 'month')?.value);
+    const day = Number(ymdParts.find((p) => p.type === 'day')?.value);
+    if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) return null;
+
+    const nextDayUtcGuess = Date.UTC(year, month - 1, day + 1, 0, 0, 0, 0);
+
+    const tzOffsetMsAt = (ts) => {
+      const dtf = new Intl.DateTimeFormat('en-US', {
+        timeZone: tz,
+        hour12: false,
         year: 'numeric',
         month: '2-digit',
         day: '2-digit',
-      }).formatToParts(nowDate);
-      const year = Number(parts.find((p) => p.type === 'year')?.value);
-      const month = Number(parts.find((p) => p.type === 'month')?.value);
-      const day = Number(parts.find((p) => p.type === 'day')?.value);
-      if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) return null;
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      });
+      const parts = dtf.formatToParts(new Date(ts));
+      const y = Number(parts.find((p) => p.type === 'year')?.value);
+      const m = Number(parts.find((p) => p.type === 'month')?.value);
+      const d = Number(parts.find((p) => p.type === 'day')?.value);
+      const hh = Number(parts.find((p) => p.type === 'hour')?.value);
+      const mm = Number(parts.find((p) => p.type === 'minute')?.value);
+      const ss = Number(parts.find((p) => p.type === 'second')?.value);
+      if (![y, m, d, hh, mm, ss].every((n) => Number.isFinite(n))) return 0;
+      const asUtc = Date.UTC(y, m - 1, d, hh, mm, ss);
+      return asUtc - ts;
+    };
 
-      const startLocal = new Date(nowDate);
-      startLocal.setHours(0, 0, 0, 0);
-      const tzOffsetNow = startLocal.getTime() - Date.parse(startLocal.toLocaleString('en-US', { timeZone: 'America/Guayaquil' }));
-      const ecuMidnight = Date.UTC(year, month - 1, day + 1, 0, 0, 0, 0) + tzOffsetNow;
-      const diff = ecuMidnight - nowDate.getTime();
-      return Number.isFinite(diff) ? Math.max(0, diff) : null;
-    },
-    [],
-  );
+    const offsetAtGuess = tzOffsetMsAt(nextDayUtcGuess);
+    const ecuMidnightUtc = nextDayUtcGuess - offsetAtGuess;
+    const diff = ecuMidnightUtc - nowDate.getTime();
+    return Number.isFinite(diff) ? Math.max(0, diff) : null;
+  }, []);
 
   const reviewsPlans = useMemo(() => {
     const rows = Array.isArray(reviewsStatus?.planes) ? reviewsStatus.planes : [];
