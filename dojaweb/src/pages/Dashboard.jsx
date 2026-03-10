@@ -2,7 +2,7 @@ import React from 'react';
 
 const Dashboard = () => {
   return (
-    <div className="min-h-screen bg-white text-white relative">
+    <div className="h-[calc(100vh-72px)] bg-white text-white relative overflow-hidden">
       <div
         className="absolute inset-0 bg-center bg-cover"
         style={{ backgroundImage: "url(/fondo1.jpg)" }}
@@ -17,9 +17,9 @@ const Dashboard = () => {
         aria-hidden="true"
       />
 
-      <div className="relative z-10 min-h-screen flex flex-col">
+      <div className="relative z-10 h-full flex flex-col">
         <div className="flex-1 flex items-end">
-          <div className="w-full px-5 pb-24">
+          <div className="w-full px-5 pb-16">
             <div className="max-w-md">
               <div className="text-3xl sm:text-4xl font-extrabold tracking-tight">¿Qué es Kia?</div>
               <div className="mt-3 text-sm sm:text-base text-white/85 leading-relaxed">

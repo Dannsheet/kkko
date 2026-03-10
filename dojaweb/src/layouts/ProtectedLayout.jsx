@@ -8,7 +8,7 @@ const ProtectedLayout = () => {
     <div className="flex flex-col h-screen">
       <AnnouncementsModal />
       <div
-        className="flex-1 min-h-0 overflow-y-auto pb-20"
+        className="flex-1 min-h-0 overflow-y-auto"
         data-scroll-container="main"
         style={{ WebkitOverflowScrolling: 'touch' }}
       >
