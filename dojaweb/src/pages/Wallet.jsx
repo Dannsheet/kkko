@@ -483,28 +483,6 @@ const WalletPage = () => {
 
   const normalizedHistory = useMemo(() => (historyItems ? historyItems.map(normalizeMov) : []), [historyItems, normalizeMov]);
 
-  const retirosPendientes = useMemo(
-    () => normalizedHistory.filter((m) => m.kind === 'retiro' && m.status === 'pendiente'),
-    [normalizedHistory],
-  );
-
-  const retirosEnviadosConfirmados = useMemo(
-    () =>
-      normalizedHistory.filter(
-        (m) =>
-          m.kind === 'retiro' && ['enviado', 'aprobado', 'confirmado', 'completado'].includes(m.status),
-      ),
-    [normalizedHistory],
-  );
-
-  const retirosOtros = useMemo(
-    () =>
-      normalizedHistory.filter(
-        (m) => m.kind === 'retiro' && !['pendiente', 'enviado', 'aprobado', 'confirmado', 'completado'].includes(m.status),
-      ),
-    [normalizedHistory],
-  );
-
   const withdrawMontoNumber = useMemo(() => Number(withdrawForm.monto), [withdrawForm.monto]);
   const insufficientByForm = useMemo(
     () =>
@@ -518,16 +496,6 @@ const WalletPage = () => {
     if (!Number.isFinite(total) || total <= 0) return false;
     return total > withdrawBalanceNumber;
   }, [withdrawValidated?.total, withdrawBalanceNumber]);
-
-  useEffect(() => {
-    if (!retirosPendientes.length) return undefined;
-    const id = window.setInterval(() => {
-      loadCuenta().catch(() => {
-        // ignore
-      });
-    }, 15_000);
-    return () => window.clearInterval(id);
-  }, [loadCuenta, retirosPendientes.length]);
 
   useEffect(() => {
     const targetId = withdrawCreated?.id;
@@ -583,7 +551,7 @@ const WalletPage = () => {
           </div>
         )}
 
-        <div className="mt-4 rounded-2xl bg-white border border-black/10 p-4">
+        <div className="mt-4 rounded-2xl bg-white p-4">
           <div className="flex items-center justify-between">
             <div className="text-[12px] text-[#131e29]/70">Saldo interno</div>
             <div className="text-[16px] font-semibold text-[#131e29]">{formattedBalance} USDT</div>
@@ -616,7 +584,7 @@ const WalletPage = () => {
             type="button"
             onClick={openWithdraw}
             disabled={!isCuentaActiva || vipLoading}
-            className="rounded-2xl bg-white hover:bg-black/5 border border-black/10 p-4 text-left transition disabled:opacity-50"
+            className="rounded-2xl bg-white hover:bg-black/5 p-4 text-left transition disabled:opacity-50"
           >
             <div className="flex items-center gap-2 text-[#131e29] font-semibold">
               <Send className="w-5 h-5" />
@@ -629,7 +597,7 @@ const WalletPage = () => {
         <button
           type="button"
           onClick={openWithdrawSupportTelegram}
-          className="mt-3 w-full rounded-2xl bg-white hover:bg-black/5 border border-black/10 p-4 text-left transition"
+          className="mt-3 w-full rounded-2xl bg-white hover:bg-black/5 p-4 text-left transition"
         >
           <div className="text-[13px] font-semibold text-[#131e29]">Problema al retirar</div>
           <div className="mt-1 text-[12px] text-[#131e29]/70">Hablar con soporte en Telegram</div>
@@ -642,7 +610,7 @@ const WalletPage = () => {
         ) : null}
 
         {isCuentaActiva ? (
-          <div className="mt-3 text-[11px] text-yellow-300">
+          <div className="mt-3 text-[11px] text-[#131e29]/70">
             El retiro mínimo es de 5 USDT. Se descontará comisión de 1 USDT por retiro
           </div>
         ) : null}
@@ -714,81 +682,28 @@ const WalletPage = () => {
           </div>
         )}
 
-        <div className="mt-4 rounded-2xl bg-white/5 border border-white/10 p-4">
-          <div className="text-[13px] font-semibold">Retiros</div>
-          {historyLoading ? (
-            <div className="mt-2 text-[12px] text-white/60">Cargando...</div>
-          ) : retirosPendientes.length || retirosEnviadosConfirmados.length || retirosOtros.length ? (
-            <div className="mt-3 space-y-2">
-              {retirosPendientes.slice(0, 10).map((m, idx) => (
-                <div key={m.id || `p_${idx}`} className="rounded-xl border border-white/10 bg-doja-bg/30 p-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="text-[12px] text-white/80">retiro</div>
-                    <div className="text-[12px] text-yellow-300 font-semibold">pendiente</div>
-                  </div>
-                  <div className="mt-1 text-[11px] text-white/60 font-mono break-words">
-                    {m.amount != null ? `monto: ${m.amount.toFixed(2)} USDT` : ''}{m.createdAt ? ` · ${String(m.createdAt)}` : ''}
-                  </div>
-                  {m.descripcion ? (
-                    <div className="mt-1 text-[11px] text-white/60 break-words">{String(m.descripcion)}</div>
-                  ) : null}
-                </div>
-              ))}
-              {retirosEnviadosConfirmados.slice(0, 10).map((m, idx) => (
-                <div key={m.id || `c_${idx}`} className="rounded-xl border border-white/10 bg-doja-bg/30 p-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="text-[12px] text-white/80">retiro</div>
-                    <div className="text-[12px] text-doja-cyan font-semibold">{m.status || '—'}</div>
-                  </div>
-                  <div className="mt-1 text-[11px] text-white/60 font-mono break-words">
-                    {m.amount != null ? `monto: ${m.amount.toFixed(2)} USDT` : ''}{m.createdAt ? ` · ${String(m.createdAt)}` : ''}
-                  </div>
-                  {m.descripcion ? (
-                    <div className="mt-1 text-[11px] text-white/60 break-words">{String(m.descripcion)}</div>
-                  ) : null}
-                </div>
-              ))}
-
-              {retirosOtros.slice(0, 10).map((m, idx) => (
-                <div key={m.id || `o_${idx}`} className="rounded-xl border border-white/10 bg-doja-bg/30 p-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="text-[12px] text-white/80">retiro</div>
-                    <div className="text-[12px] text-white/70 font-semibold">—</div>
-                  </div>
-                  <div className="mt-1 text-[11px] text-white/60 font-mono break-words">
-                    {m.amount != null ? `monto: ${m.amount.toFixed(2)} USDT` : ''}{m.createdAt ? ` · ${String(m.createdAt)}` : ''}
-                  </div>
-                  {m.descripcion ? (
-                    <div className="mt-1 text-[11px] text-white/60 break-words">{String(m.descripcion)}</div>
-                  ) : null}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="mt-2 text-[12px] text-white/60">No tienes retiros</div>
-          )}
-        </div>
+        {null}
       </div>
 
       {withdrawOpen && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center px-4">
           <button
             type="button"
-            className="absolute inset-0 bg-doja-bg/80"
+            className="absolute inset-0 bg-black/40"
             onClick={closeWithdraw}
             aria-label="Cerrar"
           />
 
-          <div className="relative w-full max-w-sm rounded-2xl border border-white/10 bg-doja-dark/80 backdrop-blur p-5 text-white">
+          <div className="relative w-full max-w-sm rounded-2xl border border-black/10 bg-white p-5 text-[#131e29]">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <div className="text-lg font-semibold">Retirar USDT</div>
-                <div className="mt-1 text-xs text-white/60">Primero valida, luego confirma.</div>
+                <div className="mt-1 text-xs text-[#131e29]/60">Primero valida, luego confirma.</div>
               </div>
               <button
                 type="button"
                 onClick={closeWithdraw}
-                className="rounded-lg px-2 py-1 text-white/60 hover:text-white hover:bg-white/10 transition"
+                className="rounded-lg px-2 py-1 text-[#131e29]/60 hover:text-[#131e29] hover:bg-black/5 transition"
               >
                 ✕
               </button>
@@ -796,22 +711,22 @@ const WalletPage = () => {
 
             <div className="mt-4 space-y-3">
               <div>
-                <label className="block text-xs text-white/70 mb-2">Monto (total)</label>
+                <label className="block text-xs text-[#131e29]/70 mb-2">Monto (total)</label>
                 <input
                   value={withdrawForm.monto}
                   onChange={(e) => setWithdrawForm((p) => ({ ...p, monto: e.target.value }))}
                   placeholder="11"
-                  className="w-full rounded-xl bg-doja-bg/30 border border-white/10 px-4 py-3 text-sm outline-none focus:border-doja-cyan/50"
+                  className="w-full rounded-xl bg-white border border-black/10 px-4 py-3 text-sm outline-none focus:border-black/20"
                 />
-                {insufficientByForm ? <div className="mt-2 text-[11px] text-yellow-300">Saldo insuficiente.</div> : null}
+                {insufficientByForm ? <div className="mt-2 text-[11px] text-[#131e29]/70">Saldo insuficiente.</div> : null}
               </div>
 
               <div>
-                <label className="block text-xs text-white/70 mb-2">Red</label>
+                <label className="block text-xs text-[#131e29]/70 mb-2">Red</label>
                 <select
                   value={withdrawForm.red}
                   onChange={(e) => setWithdrawForm((p) => ({ ...p, red: e.target.value }))}
-                  className="w-full rounded-xl bg-doja-bg/30 border border-white/10 px-4 py-3 text-sm outline-none focus:border-doja-cyan/50"
+                  className="w-full rounded-xl bg-white border border-black/10 px-4 py-3 text-sm outline-none focus:border-black/20"
                   disabled
                 >
                   <option value="BEP20-USDT">BEP20-USDT</option>
@@ -819,29 +734,29 @@ const WalletPage = () => {
               </div>
 
               <div>
-                <label className="block text-xs text-white/70 mb-2">Dirección externa</label>
+                <label className="block text-xs text-[#131e29]/70 mb-2">Dirección externa</label>
                 <input
                   value={withdrawForm.direccion}
                   onChange={(e) => setWithdrawForm((p) => ({ ...p, direccion: e.target.value }))}
                   placeholder="0x... / T..."
-                  className="w-full rounded-xl bg-doja-bg/30 border border-white/10 px-4 py-3 text-sm outline-none focus:border-doja-cyan/50"
+                  className="w-full rounded-xl bg-white border border-black/10 px-4 py-3 text-sm outline-none focus:border-black/20"
                 />
               </div>
 
               <div>
-                <label className="block text-xs text-white/70 mb-2">PIN</label>
+                <label className="block text-xs text-[#131e29]/70 mb-2">PIN</label>
                 <input
                   type="password"
                   value={withdrawForm.pin}
                   onChange={(e) => setWithdrawForm((p) => ({ ...p, pin: e.target.value }))}
                   placeholder="1234"
-                  className="w-full rounded-xl bg-doja-bg/30 border border-white/10 px-4 py-3 text-sm outline-none focus:border-doja-cyan/50"
+                  className="w-full rounded-xl bg-white border border-black/10 px-4 py-3 text-sm outline-none focus:border-black/20"
                 />
                 {withdrawPinFailedAttempts >= 2 ? (
                   <button
                     type="button"
                     onClick={() => setWithdrawPinResetOpen(true)}
-                    className="mt-2 text-[11px] text-doja-cyan font-semibold hover:text-white transition"
+                    className="mt-2 text-[11px] text-[#131e29] font-semibold hover:text-[#131e29]/80 transition"
                     disabled={withdrawLoading}
                   >
                     ¿Olvidaste tu PIN? Reiniciarlo
@@ -851,37 +766,37 @@ const WalletPage = () => {
             </div>
 
             {withdrawPinResetOpen ? (
-              <div className="mt-4 rounded-xl border border-white/10 bg-white/5 p-3">
-                <div className="text-xs text-white/70">Reiniciar PIN</div>
+              <div className="mt-4 rounded-xl border border-black/10 bg-white p-3">
+                <div className="text-xs text-[#131e29]/70">Reiniciar PIN</div>
                 <div className="mt-3 space-y-3">
                   <div>
-                    <label className="block text-xs text-white/70 mb-2">Contraseña</label>
+                    <label className="block text-xs text-[#131e29]/70 mb-2">Contraseña</label>
                     <input
                       type="password"
                       value={withdrawPinResetPassword}
                       onChange={(e) => setWithdrawPinResetPassword(e.target.value)}
                       placeholder="Tu contraseña"
-                      className="w-full rounded-xl bg-doja-bg/30 border border-white/10 px-4 py-3 text-sm outline-none focus:border-doja-cyan/50"
+                      className="w-full rounded-xl bg-white border border-black/10 px-4 py-3 text-sm outline-none focus:border-black/20"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-white/70 mb-2">Nuevo PIN</label>
+                    <label className="block text-xs text-[#131e29]/70 mb-2">Nuevo PIN</label>
                     <input
                       type="password"
                       value={withdrawPinResetNewPin}
                       onChange={(e) => setWithdrawPinResetNewPin(e.target.value)}
                       placeholder="1234"
-                      className="w-full rounded-xl bg-doja-bg/30 border border-white/10 px-4 py-3 text-sm outline-none focus:border-doja-cyan/50"
+                      className="w-full rounded-xl bg-white border border-black/10 px-4 py-3 text-sm outline-none focus:border-black/20"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-white/70 mb-2">Confirmar nuevo PIN</label>
+                    <label className="block text-xs text-[#131e29]/70 mb-2">Confirmar nuevo PIN</label>
                     <input
                       type="password"
                       value={withdrawPinResetConfirmPin}
                       onChange={(e) => setWithdrawPinResetConfirmPin(e.target.value)}
                       placeholder="1234"
-                      className="w-full rounded-xl bg-doja-bg/30 border border-white/10 px-4 py-3 text-sm outline-none focus:border-doja-cyan/50"
+                      className="w-full rounded-xl bg-white border border-black/10 px-4 py-3 text-sm outline-none focus:border-black/20"
                     />
                   </div>
 
@@ -889,7 +804,7 @@ const WalletPage = () => {
                     <button
                       type="button"
                       onClick={() => setWithdrawPinResetOpen(false)}
-                      className="rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 py-3 text-sm font-semibold transition disabled:opacity-50"
+                      className="rounded-xl bg-white hover:bg-black/5 border border-black/10 py-3 text-sm font-semibold transition disabled:opacity-50"
                       disabled={withdrawLoading}
                     >
                       Cancelar
@@ -897,7 +812,7 @@ const WalletPage = () => {
                     <button
                       type="button"
                       onClick={handleWithdrawResetPin}
-                      className="rounded-xl bg-doja-cyan/20 hover:bg-doja-cyan/30 border border-doja-cyan/40 py-3 text-sm font-semibold text-doja-cyan transition disabled:opacity-50"
+                      className="rounded-xl bg-[#131e29] hover:opacity-90 border border-[#131e29] py-3 text-sm font-semibold text-white transition disabled:opacity-50"
                       disabled={withdrawLoading}
                     >
                       {withdrawLoading ? 'Guardando...' : 'Guardar PIN'}
@@ -908,35 +823,35 @@ const WalletPage = () => {
             ) : null}
 
             {withdrawValidated?.ok ? (
-              <div className="mt-4 rounded-xl border border-doja-cyan/30 bg-doja-cyan/10 p-3">
-                <div className="text-xs text-white/70">Resumen</div>
-                <div className="mt-1 text-sm text-doja-cyan font-semibold">
+              <div className="mt-4 rounded-xl border border-black/10 bg-black/5 p-3">
+                <div className="text-xs text-[#131e29]/70">Resumen</div>
+                <div className="mt-1 text-sm text-[#131e29] font-semibold">
                   {Number(withdrawValidated?.total || 0).toFixed(2)} - {Number(withdrawValidated?.fee || 0).toFixed(2)} = {Number(withdrawValidated?.monto || 0).toFixed(2)} USDT
                 </div>
                 {insufficientByValidated ? (
-                  <div className="mt-2 text-[11px] text-yellow-300">Saldo insuficiente para cubrir el total.</div>
+                  <div className="mt-2 text-[11px] text-[#131e29]/70">Saldo insuficiente para cubrir el total.</div>
                 ) : null}
               </div>
             ) : null}
 
             {withdrawCreated ? (
-              <div className="mt-4 rounded-xl border border-white/10 bg-white/5 p-3">
-                <div className="text-xs text-white/70">Estado</div>
-                <div className="mt-1 text-sm text-white/80">{String(withdrawCreated?.estado || 'pendiente')}</div>
+              <div className="mt-4 rounded-xl border border-black/10 bg-white p-3">
+                <div className="text-xs text-[#131e29]/70">Estado</div>
+                <div className="mt-1 text-sm text-[#131e29]/80">{String(withdrawCreated?.estado || 'pendiente')}</div>
                 {withdrawCreated?.id ? (
-                  <div className="mt-1 text-[11px] text-white/60 font-mono break-all">id: {String(withdrawCreated.id)}</div>
+                  <div className="mt-1 text-[11px] text-[#131e29]/60 font-mono break-all">id: {String(withdrawCreated.id)}</div>
                 ) : null}
               </div>
             ) : null}
 
             {withdrawNeedsPinSetup ? (
-              <div className="mt-4 rounded-xl border border-yellow-400/30 bg-yellow-400/10 p-3">
-                <div className="text-xs text-white/80">Tu PIN de retiro no está configurado.</div>
+              <div className="mt-4 rounded-xl border border-black/10 bg-black/5 p-3">
+                <div className="text-xs text-[#131e29]/80">Tu PIN de retiro no está configurado.</div>
                 <button
                   type="button"
                   onClick={handleWithdrawSetPin}
                   disabled={withdrawLoading}
-                  className="mt-3 w-full rounded-xl bg-yellow-400/15 hover:bg-yellow-400/20 border border-yellow-400/30 py-3 text-sm font-semibold text-yellow-200 transition disabled:opacity-50"
+                  className="mt-3 w-full rounded-xl bg-[#131e29] hover:opacity-90 border border-[#131e29] py-3 text-sm font-semibold text-white transition disabled:opacity-50"
                 >
                   {withdrawLoading ? 'Guardando...' : 'Configurar PIN'}
                 </button>
@@ -948,7 +863,7 @@ const WalletPage = () => {
                 type="button"
                 onClick={handleWithdrawValidate}
                 disabled={withdrawLoading || insufficientByForm || !isCuentaActiva}
-                className="rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 py-3 text-sm font-semibold transition disabled:opacity-50"
+                className="rounded-xl bg-white hover:bg-black/5 border border-black/10 py-3 text-sm font-semibold transition disabled:opacity-50"
               >
                 {withdrawLoading ? 'Validando...' : 'Validar'}
               </button>
@@ -956,7 +871,7 @@ const WalletPage = () => {
                 type="button"
                 onClick={handleWithdrawCreate}
                 disabled={withdrawLoading || !withdrawValidated?.ok || insufficientByValidated}
-                className="rounded-xl bg-doja-cyan/20 hover:bg-doja-cyan/30 border border-doja-cyan/40 py-3 text-sm font-semibold text-doja-cyan transition disabled:opacity-50"
+                className="rounded-xl bg-[#131e29] hover:opacity-90 border border-[#131e29] py-3 text-sm font-semibold text-white transition disabled:opacity-50"
               >
                 {withdrawLoading ? 'Creando...' : 'Confirmar'}
               </button>
@@ -965,7 +880,7 @@ const WalletPage = () => {
             <button
               type="button"
               onClick={openWithdrawSupportTelegram}
-              className="mt-3 w-full rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 py-3 text-sm font-semibold text-white/80 transition"
+              className="mt-3 w-full rounded-xl bg-white hover:bg-black/5 border border-black/10 py-3 text-sm font-semibold text-[#131e29]/80 transition"
             >
               Problema al retirar
             </button>

@@ -104,19 +104,6 @@ const VIP = () => {
     return () => window.clearInterval(id);
   }, [activeSubsView.length]);
 
-  const countdownFor = useCallback(
-    (expiryMs) => {
-      if (!Number.isFinite(Number(expiryMs))) return null;
-      const diffMs = Math.max(0, Number(expiryMs) - Number(nowTs || 0));
-      const totalMinutes = Math.floor(diffMs / 60000);
-      const days = Math.floor(totalMinutes / 1440);
-      const hours = Math.floor((totalMinutes % 1440) / 60);
-      const minutes = totalMinutes % 60;
-      return { days, hours, minutes, diffMs };
-    },
-    [nowTs],
-  );
-
   const vipDailyByLevel = useMemo(
     () => ({
       1: { price: 10, daily: 0.5 },
@@ -427,61 +414,10 @@ const VIP = () => {
         </div>
       )}
 
-      <div className="mt-5 bg-white px-4 py-4 border-t border-b border-black/10">
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-[#131e29]/70">Balance</div>
-          <div className="text-lg font-semibold text-[#131e29]">{Number(balance || 0).toFixed(2)} USDT</div>
-        </div>
-        <button
-          type="button"
-          className="mt-3 w-full rounded-xl bg-[#131e29] hover:opacity-90 border border-[#131e29] py-3 text-sm font-semibold text-white transition"
-          onClick={() => navigate('/wallet')}
-        >
-          Recargar
-        </button>
+      <div className="mt-0 px-4 py-5">
+        <div className="text-sm font-semibold text-[#131e29]">Reseñas</div>
+        <div className="mt-1 text-xs text-[#131e29]/60">Compra planes, genera ingresos y deja tus reseñas cada 24h.</div>
       </div>
-
-      {activeSubsView.length ? (
-        <div className="mt-0 bg-white px-4 py-4 border-b border-black/10">
-          <div className="mt-3 flex items-center gap-2 text-[#131e29] font-semibold">
-            <CheckCircle2 className="w-5 h-5" />
-            Suscripción activa
-          </div>
-
-          <div className="mt-3 space-y-2">
-            {activeSubsView.map((s) => {
-              const cd = countdownFor(s?.expiryMs);
-              const expiryLabel = (() => {
-                if (!s?.expira_en) return '—';
-                const d = new Date(String(s.expira_en));
-                return Number.isFinite(d.getTime()) ? d.toLocaleString() : String(s.expira_en);
-              })();
-
-              return (
-                <div key={s?.subscription_id || s?.plan_id} className="border border-black/10 bg-white p-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <div className="text-sm text-[#131e29]/70">Plan</div>
-                      <div className="text-sm font-semibold text-[#131e29]">
-                        <span className="font-mono">{s?.nombre || `#${s?.plan_id}`}</span>
-                      </div>
-                      <div className="mt-1 text-xs text-[#131e29]/60">Expira: {expiryLabel}</div>
-                    </div>
-                    {cd ? (
-                      <div className="text-right">
-                        <div className="text-[11px] text-[#131e29]/60">Termina en</div>
-                        <div className="mt-1 text-sm font-extrabold text-[#131e29]">
-                          {cd.days}d {String(cd.hours).padStart(2, '0')}h {String(cd.minutes).padStart(2, '0')}m
-                        </div>
-                      </div>
-                    ) : null}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      ) : null}
 
       {user && reviewsPlans.length ? (
         <div className="mt-0 bg-white px-4 py-5 border-b border-black/10">

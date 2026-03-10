@@ -255,15 +255,17 @@ const Perfil = () => {
         </div>
       ) : null}
 
-      <div className="mt-0 px-4 py-4 border-b border-black/10 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-        {metrics.map((m) => (
-          <div key={m.label} className="border border-black/10 bg-white p-4">
-            <div className="text-[12px] text-[#131e29]/60 leading-tight">{m.label}</div>
-            <div className="mt-2 text-lg font-semibold" style={neonCyanStyle}>
-              {loading ? '—' : m.value}
+      <div className="mt-0 px-4 py-4 border-b border-black/0">
+        <div className="space-y-3">
+          {metrics.map((m) => (
+            <div key={m.label} className="bg-white p-4 rounded-2xl">
+              <div className="text-[12px] text-[#131e29]/60 leading-tight">{m.label}</div>
+              <div className="mt-2 text-lg font-semibold" style={neonCyanStyle}>
+                {loading ? '—' : m.value}
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
       <div className="mt-0 bg-white overflow-hidden border-b border-black/10">
