@@ -1,11 +1,13 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { BookOpen, Copy, Gift, LogOut, QrCode, Wallet as WalletIcon } from 'lucide-react';
+import { ArrowLeftRight, BookOpen, Copy, Gift, LogOut, QrCode, Wallet as WalletIcon } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import {
   createDepositRequest,
   getCuentaInfo,
   getMe,
+  getMyDeposits,
+  getMyWithdrawals,
   getMyReferralProfile,
   getMyReferralStats,
   getVipCurrent,
@@ -44,6 +46,13 @@ const Perfil = () => {
   const [confirmDepositLoading, setConfirmDepositLoading] = useState(false);
   const [pollingActive, setPollingActive] = useState(false);
   const lastBalanceRef = useRef(0);
+
+  const [myDeposits, setMyDeposits] = useState([]);
+  const [myDepositsLoading, setMyDepositsLoading] = useState(false);
+
+  const [myWithdrawals, setMyWithdrawals] = useState([]);
+  const [myWithdrawalsLoading, setMyWithdrawalsLoading] = useState(false);
+  const [withdrawalsHistoryOpen, setWithdrawalsHistoryOpen] = useState(false);
 
   const [vipActive, setVipActive] = useState(false);
 
@@ -227,10 +236,44 @@ const Perfil = () => {
     return String(deposit?.memo || deposit?.tag || deposit?.memo_tag || '').trim();
   }, [deposit]);
 
+  const openWithdraw = () => {
+    if (!isCuentaActiva) {
+      showToast('error', 'Debes tener un plan activo para retirar');
+      return;
+    }
+    setWithdrawOpen(true);
+    setWithdrawValidated(null);
+    setWithdrawCreated(null);
+    setWithdrawNeedsPinSetup(false);
+    setWithdrawPinFailedAttempts(0);
+    setWithdrawPinResetOpen(false);
+    setWithdrawPinResetPassword('');
+    setWithdrawPinResetNewPin('');
+    setWithdrawPinResetConfirmPin('');
+  };
+
   const closeWithdraw = () => {
     setWithdrawOpen(false);
     setWithdrawLoading(false);
     setWithdrawPinResetOpen(false);
+  };
+
+  const toggleWithdrawalsHistory = async () => {
+    setWithdrawalsHistoryOpen((prev) => !prev);
+
+    if (withdrawalsHistoryOpen) return;
+    if (myWithdrawalsLoading) return;
+    if (myWithdrawals.length) return;
+
+    try {
+      setMyWithdrawalsLoading(true);
+      const rows = await getMyWithdrawals();
+      setMyWithdrawals(Array.isArray(rows) ? rows : []);
+    } catch {
+      setMyWithdrawals([]);
+    } finally {
+      setMyWithdrawalsLoading(false);
+    }
   };
 
   const handleCreateDepositAddress = async () => {
@@ -250,6 +293,16 @@ const Perfil = () => {
       setDeposit(normalized);
       showToast('success', 'Dirección generada');
       setPollingActive(true);
+
+      try {
+        setMyDepositsLoading(true);
+        const list = await getMyDeposits();
+        setMyDeposits(Array.isArray(list) ? list : []);
+      } catch {
+        setMyDeposits([]);
+      } finally {
+        setMyDepositsLoading(false);
+      }
     } catch (e) {
       console.error('[Perfil] /deposit/request error', e);
       showToast('error', e?.message || 'No se pudo generar la dirección');
@@ -613,18 +666,6 @@ const Perfil = () => {
 
       <div className="mt-0 bg-white overflow-hidden border-b border-black/10">
         <div className="px-4 py-4">
-          <div className="grid grid-cols-1 gap-2">
-            <button
-              type="button"
-              onClick={handleCreateDepositAddress}
-              disabled={depositLoading}
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#131e29] hover:opacity-90 px-3 py-2 text-sm font-semibold text-white transition disabled:opacity-50"
-            >
-              <QrCode className="w-4 h-4" />
-              Recargar
-            </button>
-          </div>
-
           {!isCuentaActiva ? (
             <div className="mt-2 text-[11px] text-red-400">Debes tener un plan activo para poder retirar.</div>
           ) : (
@@ -646,6 +687,87 @@ const Perfil = () => {
           </div>
           <div className="text-[#131e29]/40">›</div>
         </button>
+
+        <div className="h-px bg-black/10" />
+        <button
+          type="button"
+          className="w-full flex items-center justify-between px-4 py-4 hover:bg-black/5 transition disabled:opacity-50"
+          onClick={handleCreateDepositAddress}
+          disabled={depositLoading}
+        >
+          <div className="flex items-center gap-3">
+            <QrCode className="w-5 h-5 text-[#131e29]/70" />
+            <div className="text-sm font-semibold">Recargar</div>
+          </div>
+          <div className="text-[#131e29]/40">›</div>
+        </button>
+
+        <div className="h-px bg-black/10" />
+        <button
+          type="button"
+          className="w-full flex items-center justify-between px-4 py-4 hover:bg-black/5 transition disabled:opacity-50"
+          onClick={openWithdraw}
+          disabled={!isCuentaActiva}
+        >
+          <div className="flex items-center gap-3">
+            <ArrowLeftRight className="w-5 h-5 text-[#131e29]/70" />
+            <div className="text-sm font-semibold">Retirar</div>
+          </div>
+          <div className="text-[#131e29]/40">›</div>
+        </button>
+
+        <div className="h-px bg-black/10" />
+        <button
+          type="button"
+          className="w-full flex items-center justify-between px-4 py-4 hover:bg-black/5 transition"
+          onClick={toggleWithdrawalsHistory}
+        >
+          <div className="flex items-center gap-3">
+            <WalletIcon className="w-5 h-5 text-[#131e29]/70" />
+            <div className="text-sm font-semibold">Historial de retiros</div>
+          </div>
+          <div className="text-[#131e29]/40">{withdrawalsHistoryOpen ? '⌃' : '›'}</div>
+        </button>
+
+        {withdrawalsHistoryOpen ? (
+          <div className="px-4 pb-4">
+            {myWithdrawalsLoading ? (
+              <div className="text-[12px] text-[#131e29]/60">Cargando...</div>
+            ) : myWithdrawals.length ? (
+              <div className="rounded-xl border border-black/10 overflow-hidden bg-white">
+                {myWithdrawals.slice(0, 8).map((w, idx) => {
+                  const createdAt = String(w?.creado_en || w?.created_at || w?.fecha || '').replace('T', ' ').slice(0, 16);
+                  const total = Number(w?.total ?? w?.monto ?? 0);
+                  const fee = Number(w?.fee ?? 0);
+                  const neto = Number(w?.monto ?? 0);
+                  const estado = String(w?.estado || '').trim();
+                  const statusLabel = estado ? estado.charAt(0).toUpperCase() + estado.slice(1) : '—';
+
+                  return (
+                    <div key={w?.id ?? idx}>
+                      <div className="px-3 py-2 flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="text-[12px] text-[#131e29]/80 truncate">
+                            Total {Number.isFinite(total) ? total.toFixed(2) : '0.00'} USDT
+                            {Number.isFinite(fee) && fee > 0 ? ` (fee ${fee.toFixed(2)})` : ''}
+                          </div>
+                          <div className="text-[11px] text-[#131e29]/50 truncate">
+                            {createdAt || '—'}
+                            {Number.isFinite(neto) && neto > 0 ? ` · Neto ${neto.toFixed(2)}` : ''}
+                          </div>
+                        </div>
+                        <div className="text-[11px] font-semibold text-right">{statusLabel}</div>
+                      </div>
+                      {idx < Math.min(myWithdrawals.length, 8) - 1 ? <div className="h-px bg-black/10" /> : null}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-[12px] text-[#131e29]/60">Aún no tienes retiros registrados.</div>
+            )}
+          </div>
+        ) : null}
 
         <div className="h-px bg-black/10" />
         <button
@@ -727,14 +849,36 @@ const Perfil = () => {
               >
                 {confirmDepositLoading ? 'Confirmando...' : 'Confirmar pago'}
               </button>
+            </div>
 
-              <button
-                type="button"
-                onClick={openWithdrawSupportTelegram}
-                className="mt-3 w-full rounded-xl bg-white hover:bg-black/5 border border-black/10 py-3 text-sm font-semibold text-[#131e29]/80 transition"
-              >
-                Problema al retirar
-              </button>
+            <div className="mt-4">
+              <div className="text-[12px] font-semibold text-[#131e29]">Historial de recargas</div>
+              {myDepositsLoading ? (
+                <div className="mt-2 text-[12px] text-[#131e29]/60">Cargando...</div>
+              ) : myDeposits.length ? (
+                <div className="mt-2 rounded-xl border border-black/10 overflow-hidden">
+                  {myDeposits.slice(0, 8).map((d, idx) => (
+                    <div key={d?.id ?? idx}>
+                      <div className="px-3 py-2 flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="text-[12px] text-[#131e29]/80 truncate">
+                            {String(d?.token || 'USDT').toUpperCase()} {Number(d?.monto || 0).toFixed(2)}
+                          </div>
+                          <div className="text-[11px] text-[#131e29]/50 truncate">
+                            {String(d?.fecha || '').replace('T', ' ').slice(0, 16) || '—'}
+                          </div>
+                        </div>
+                        <div className="text-[11px] font-semibold text-right">
+                          {d?.confirmado ? (d?.credited ? 'Confirmado' : 'Confirmado') : 'Pendiente'}
+                        </div>
+                      </div>
+                      {idx < Math.min(myDeposits.length, 8) - 1 ? <div className="h-px bg-black/10" /> : null}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="mt-2 text-[12px] text-[#131e29]/60">Aún no tienes recargas registradas.</div>
+              )}
             </div>
 
             <div className="mt-3 text-[11px] text-[#131e29]/60">

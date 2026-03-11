@@ -341,6 +341,10 @@ export const getMyReferralProfile = () => apiFetch('/api/referrals/me/profile');
 
 export const getMyReferralStats = () => apiFetch('/api/referrals/me/stats');
 
+export const getMyDeposits = () => apiFetch('/api/deposits/me');
+
+export const getMyWithdrawals = () => apiFetch('/api/withdraw/me');
+
 export const getMyReferralMembers = (level) => {
   const n = Number(level);
   const q = Number.isFinite(n) && n > 0 ? `?level=${encodeURIComponent(String(n))}` : '';
