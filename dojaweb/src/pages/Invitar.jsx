@@ -119,11 +119,13 @@ const Invitar = () => {
       </div>
 
       <div className="mt-4 rounded-2xl border border-black/10 bg-white p-4">
-        <div className="text-sm font-semibold">🌟🌟🌟🌟🌟🌟 Reembolso de recarga del equipo:</div>
+        <div className="text-sm font-semibold">
+          �️ Por invitar a tus amigos a ser parte de nuestro equipo de trabajo recibiras buenos reembolsos de recarga:
+        </div>
         <div className="mt-3 space-y-2 text-sm text-[#131e29]/80">
-          <div>🎁Reembolso por recarga de nivel 1: 15%</div>
-          <div>🎁🎁Reembolso por recarga de nivel 2: 1%</div>
-          <div>🎁🎁🎁Reembolso por recarga de nivel 3: 1%</div>
+          <div>💰Reembolso por recarga de nivel 1: 10%</div>
+          <div>💰Reembolso por recarga de nivel 2: 1%</div>
+          <div>💰Reembolso por recarga de nivel 3: 1%</div>
         </div>
       </div>
 
