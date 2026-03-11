@@ -1,8 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Copy } from 'lucide-react';
-import { QRCodeCanvas } from 'qrcode.react';
 import { useAuth } from '../hooks/useAuth';
-import { getMyReferralProfile } from '../lib/api.js';
+import { getMyReferralProfile, getMyReferralStats } from '../lib/api.js';
 import './Invitar.css';
 
 const Invitar = () => {
@@ -11,6 +10,9 @@ const Invitar = () => {
   const [toast, setToast] = useState(null);
   const [serverInviteCode, setServerInviteCode] = useState('');
   const [inviteCodeLoading, setInviteCodeLoading] = useState(true);
+
+  const [refStats, setRefStats] = useState(null);
+  const [refStatsLoading, setRefStatsLoading] = useState(true);
 
   useEffect(() => {
     if (!toast) return;
@@ -30,6 +32,27 @@ const Invitar = () => {
         // ignore
       } finally {
         if (alive) setInviteCodeLoading(false);
+      }
+    };
+    run();
+    return () => {
+      alive = false;
+    };
+  }, [user?.id]);
+
+  useEffect(() => {
+    let alive = true;
+    const run = async () => {
+      try {
+        setRefStatsLoading(true);
+        const resp = await getMyReferralStats();
+        if (!alive) return;
+        setRefStats(resp || null);
+      } catch {
+        if (!alive) return;
+        setRefStats(null);
+      } finally {
+        if (alive) setRefStatsLoading(false);
       }
     };
     run();
@@ -111,18 +134,43 @@ const Invitar = () => {
           </button>
         </div>
 
-        <div className="mt-5 flex items-center justify-center">
-          <div className="rounded-2xl bg-white p-4">
-            <QRCodeCanvas value={inviteLink || ''} size={190} includeMargin />
-          </div>
+        <div className="mt-5">
+          <div className="text-sm font-semibold text-center">Niveles de referidos</div>
+          {refStatsLoading ? (
+            <div className="mt-2 text-sm text-[#131e29]/60 text-center">Cargando...</div>
+          ) : Array.isArray(refStats?.niveles) && refStats.niveles.length ? (
+            <div className="mt-3 grid grid-cols-1 gap-3">
+              {refStats.niveles.slice(0, 3).map((lvl) => (
+                <div key={lvl?.nivel} className="rounded-2xl border border-black/10 bg-white p-3">
+                  <div className="text-sm font-semibold text-center">Nivel {lvl?.nivel}</div>
+                  <div className="mt-2 grid grid-cols-3 gap-2 text-center">
+                    <div>
+                      <div className="text-[11px] text-[#131e29]/60">Miembros</div>
+                      <div className="text-sm font-semibold">{String(lvl?.plantillaTotal ?? 0)}</div>
+                    </div>
+                    <div>
+                      <div className="text-[11px] text-[#131e29]/60">Activos</div>
+                      <div className="text-sm font-semibold">{String(lvl?.numeroActivos ?? 0)}</div>
+                    </div>
+                    <div>
+                      <div className="text-[11px] text-[#131e29]/60">Recarga</div>
+                      <div className="text-sm font-semibold">{Number(lvl?.equipoRecarga ?? 0).toFixed(2)}</div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="mt-2 text-sm text-[#131e29]/60 text-center">Aún no tienes referidos.</div>
+          )}
         </div>
       </div>
 
       <div className="mt-4 rounded-2xl border border-black/10 bg-white p-4">
-        <div className="text-sm font-semibold">
-          �️ Por invitar a tus amigos a ser parte de nuestro equipo de trabajo recibiras buenos reembolsos de recarga:
+        <div className="text-sm font-semibold text-center">
+          🏎️ Por invitar a tus amigos a ser parte de nuestro equipo de trabajo recibiras buenos reembolsos de recarga:
         </div>
-        <div className="mt-3 space-y-2 text-sm text-[#131e29]/80">
+        <div className="mt-3 space-y-2 text-sm text-[#131e29]/80 text-center">
           <div>💰Reembolso por recarga de nivel 1: 10%</div>
           <div>💰Reembolso por recarga de nivel 2: 1%</div>
           <div>💰Reembolso por recarga de nivel 3: 1%</div>
