@@ -11,6 +11,7 @@ import {
   getMyPlans,
   getReviewsModels,
   getReviewsStatus,
+  startVipTrial,
   submitReview,
 } from '../lib/api.js';
 import './VIP.css';
@@ -388,6 +389,27 @@ const VIP = () => {
       return;
     }
     const price = Number(plan?.precio || 0);
+
+    const isTrialPlan =
+      Number(price) === 0 &&
+      Number(plan?.duracion_dias) === 3 &&
+      Number(plan?.ganancia_diaria) === 1;
+
+    if (isTrialPlan) {
+      setBuyingPlanId(plan.id);
+      try {
+        const resp = await startVipTrial(plan.id);
+        showToast('success', resp?.message || 'Trial iniciado');
+        await loadVipData();
+      } catch (e) {
+        console.error('[VIP] trial start error', e);
+        showToast('error', e?.message || 'No se pudo iniciar el trial');
+      } finally {
+        setBuyingPlanId(null);
+      }
+      return;
+    }
+
     if (Number(balance || 0) < price) {
       showToast('error', 'Saldo insuficiente. Recarga tu billetera para comprar este plan.');
       try {
@@ -421,24 +443,7 @@ const VIP = () => {
     <div className="min-h-full bg-white text-[#131e29] p-0">
       <div className="relative flex items-center justify-between min-h-[32px]">
         <h1 className="pageTitleNeon absolute left-1/2 -translate-x-1/2 text-2xl font-bold">Reseñas</h1>
-        <div className="flex items-center gap-3">
-          <div className="vipStatusPill" aria-label="Estado de suscripción">
-            <span className="vipStatusPill__text">
-              {activePlanIds?.length
-                ? `VIP Activo (${activePlanIds.length})`
-                : activeSub?.plan_id
-                  ? String(activeSub?.nombre || activeSub?.plan_id)
-                  : 'Cuenta gratis'}
-            </span>
-          </div>
-          <button
-            type="button"
-            className="text-sm text-[#131e29]/60 hover:text-[#131e29] transition"
-            onClick={() => navigate('/dashboard')}
-          >
-            Volver
-          </button>
-        </div>
+        <div className="flex items-center gap-3" />
       </div>
 
       {toast && (
@@ -639,68 +644,95 @@ const VIP = () => {
                 No hay planes disponibles para mostrar.
               </div>
             )}
-            {plans.map((plan) => {
-              const level = getVipLevel(plan);
-              const meta = level ? vipDailyByLevel[level] : null;
-              const price = Number(plan?.precio || meta?.price || 0);
-              const daily = Number.isFinite(Number(plan?.ganancia_diaria)) ? Number(plan?.ganancia_diaria) : meta?.daily;
-              const isBuying = buyingPlanId === plan.id;
-              const planId = Number(plan?.id);
-              const alreadyActive = Number.isFinite(planId) && Array.isArray(activePlanIds) && activePlanIds.includes(planId);
-              const maxReached = Array.isArray(activePlanIds) && activePlanIds.length >= 8;
-              const isDisabled = Boolean(isBuying || alreadyActive || maxReached);
+            {plans
+              .sort((a, b) => {
+                const isTrialA =
+                  Number(a.precio) === 0 &&
+                  Number(a.duracion_dias) === 3 &&
+                  Number(a.ganancia_diaria) === 1;
+                const isTrialB =
+                  Number(b.precio) === 0 &&
+                  Number(b.duracion_dias) === 3 &&
+                  Number(b.ganancia_diaria) === 1;
+                return isTrialA ? -1 : isTrialB ? 1 : 0;
+              })
+              .map((plan) => {
+                const level = getVipLevel(plan);
+                const meta = level ? vipDailyByLevel[level] : null;
+                const price = Number(plan?.precio || meta?.price || 0);
+                const daily = Number.isFinite(Number(plan?.ganancia_diaria)) ? Number(plan?.ganancia_diaria) : meta?.daily;
+                const isBuying = buyingPlanId === plan.id;
+                const planId = Number(plan?.id);
+                const alreadyActive = Number.isFinite(planId) && Array.isArray(activePlanIds) && activePlanIds.includes(planId);
+                const maxReached = Array.isArray(activePlanIds) && activePlanIds.length >= 8;
+                const isDisabled = Boolean(isBuying || alreadyActive || maxReached);
 
-               const model = modelByPlanId.get(planId) || null;
-               const modelName = model?.nombre || plan?.nombre || `Plan #${planId}`;
-               const imageUrl = model?.imagen_url || '';
+                const isTrialPlan =
+                  Number(price) === 0 &&
+                  Number(plan?.duracion_dias) === 3 &&
+                  Number(plan?.ganancia_diaria) === 1;
 
-              return (
-                <div
-                  key={plan.id}
-                  className="border border-black/10 bg-white p-3 rounded-2xl flex items-stretch gap-3"
-                >
-                  <div className="w-[84px] h-[72px] rounded-xl overflow-hidden border border-black/10 bg-black/5 flex items-center justify-center">
-                    {imageUrl ? (
-                      <img src={imageUrl} alt={modelName} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="text-[11px] text-[#131e29]/50">Sin imagen</div>
-                    )}
-                  </div>
+                const model = modelByPlanId.get(planId) || null;
+                const modelName = model?.nombre || plan?.nombre || `Plan #${planId}`;
+                const imageUrl = model?.imagen_url || '';
 
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-semibold truncate">{modelName}</div>
-                    <div className="mt-2 grid grid-cols-3 gap-2">
-                      <div className="rounded-xl border border-black/10 bg-white px-1.5 py-1.5 sm:px-2 sm:py-2 text-center min-w-0">
-                        <div className="text-[9px] sm:text-[10px] text-[#131e29]/60 leading-tight">Inversión</div>
-                        <div className="mt-0.5 text-[11px] sm:text-xs font-extrabold text-[#131e29] truncate">${Number(price).toFixed(2)}</div>
-                      </div>
-                      <div className="rounded-xl border border-black/10 bg-white px-1.5 py-1.5 sm:px-2 sm:py-2 text-center min-w-0">
-                        <div className="text-[9px] sm:text-[10px] text-[#131e29]/60 leading-tight">Ganancias</div>
-                        <div className="mt-0.5 text-[11px] sm:text-xs font-extrabold text-[#131e29] truncate">
-                          {typeof daily === 'number' ? `$${Number(daily).toFixed(2)}` : '—'}
+                return (
+                  <div
+                    key={plan.id}
+                    className="border border-black/10 bg-white p-3 rounded-2xl flex items-stretch gap-3"
+                  >
+                    <div className="w-[84px] h-[72px] rounded-xl overflow-hidden border border-black/10 bg-black/5 flex items-center justify-center">
+                      {imageUrl ? (
+                        <img src={imageUrl} alt={modelName} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="text-[11px] text-[#131e29]/50">Sin imagen</div>
+                      )}
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-semibold truncate">{modelName}</div>
+                      <div className="mt-2 grid grid-cols-3 gap-2">
+                        <div className="rounded-xl border border-black/10 bg-white px-1.5 py-1.5 sm:px-2 sm:py-2 text-center min-w-0">
+                          <div className="text-[9px] sm:text-[10px] text-[#131e29]/60 leading-tight">Inversión</div>
+                          <div className="mt-0.5 text-[11px] sm:text-xs font-extrabold text-[#131e29] truncate">
+                            ${Number(price).toFixed(2)}
+                          </div>
                         </div>
+                        <div className="rounded-xl border border-black/10 bg-white px-1.5 py-1.5 sm:px-2 sm:py-2 text-center min-w-0">
+                          <div className="text-[9px] sm:text-[10px] text-[#131e29]/60 leading-tight">Ganancias</div>
+                          <div className="mt-0.5 text-[11px] sm:text-xs font-extrabold text-[#131e29] truncate">
+                            {typeof daily === 'number' ? `$${Number(daily).toFixed(2)}` : '—'}
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          disabled={isDisabled}
+                          onClick={() => handleBuy(plan)}
+                          className={
+                            'rounded-xl border px-1.5 py-1.5 sm:px-2 sm:py-2 text-center text-[11px] sm:text-xs font-extrabold transition truncate ' +
+                            (alreadyActive || maxReached
+                              ? 'bg-black/5 border-black/10 text-[#131e29]/40 cursor-not-allowed'
+                              : 'bg-[#131e29] border-[#131e29] text-white hover:opacity-90')
+                          }
+                        >
+                          {isBuying
+                            ? '...'
+                            : alreadyActive
+                              ? 'Activo'
+                              : maxReached
+                                ? 'Límite'
+                                : isTrialPlan
+                                  ? 'Iniciar'
+                                  : 'Comprar'}
+                        </button>
                       </div>
-                      <button
-                        type="button"
-                        disabled={isDisabled}
-                        onClick={() => handleBuy(plan)}
-                        className={
-                          'rounded-xl border px-1.5 py-1.5 sm:px-2 sm:py-2 text-center text-[11px] sm:text-xs font-extrabold transition truncate ' +
-                          (alreadyActive || maxReached
-                            ? 'bg-black/5 border-black/10 text-[#131e29]/40 cursor-not-allowed'
-                            : 'bg-[#131e29] border-[#131e29] text-white hover:opacity-90')
-                        }
-                      >
-                        {isBuying ? '...' : alreadyActive ? 'Activo' : maxReached ? 'Límite' : 'Comprar'}
-                      </button>
+                    </div>
+
+                    <div className="flex flex-col items-end justify-start pt-1">
+                      <Crown className="w-5 h-5 text-[#131e29]" />
                     </div>
                   </div>
-
-                  <div className="flex flex-col items-end justify-start pt-1">
-                    <Crown className="w-5 h-5 text-[#131e29]" />
-                  </div>
-                </div>
-              );
+                );
             })}
           </div>
         )}

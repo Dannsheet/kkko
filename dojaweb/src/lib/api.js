@@ -196,6 +196,8 @@ export const createVipIntent = (planId) =>
 
 export const buyVip = (planId) => apiFetch('/api/vip/buy', { method: 'POST', body: { plan_id: planId } });
 
+export const startVipTrial = (planId) => apiFetch('/api/vip/trial/start', { method: 'POST', body: { plan_id: planId } });
+
 export const getVipCurrent = async () => {
   try {
     return await apiFetch('/api/vip/current');

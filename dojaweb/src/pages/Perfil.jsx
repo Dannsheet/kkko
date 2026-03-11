@@ -378,7 +378,7 @@ const Perfil = () => {
     if (!withdrawForm.red) return 'Debes seleccionar una red';
     const fee = Number(withdrawFees?.[withdrawForm.red]);
     if (!Number.isFinite(fee) || fee <= 0) return 'Red no soportada';
-    if (monto < 5) return `El retiro mínimo es 5 USDT. Ingresa mínimo ${Number(5).toFixed(2)} USDT`;
+    if (monto < 3) return `El retiro mínimo es 3 USDT. Ingresa mínimo ${Number(3).toFixed(2)} USDT`;
     const neto = monto - fee;
     if (!Number.isFinite(neto) || neto <= 0) return 'Monto inválido';
     if (!withdrawForm.direccion.trim()) return 'Debes ingresar una dirección externa';
@@ -670,7 +670,7 @@ const Perfil = () => {
             <div className="mt-2 text-[11px] text-red-400">Debes tener un plan activo para poder retirar.</div>
           ) : (
             <div className="mt-2 text-[11px] text-[#131e29]/70">
-              El retiro mínimo es de 5 USDT. Se descontará comisión de 1 USDT por retiro
+              El retiro mínimo es de 3 USDT. Se descontará comisión de 1 USDT por retiro
             </div>
           )}
         </div>
