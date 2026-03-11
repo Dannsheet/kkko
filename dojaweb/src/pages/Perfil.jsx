@@ -546,7 +546,7 @@ const Perfil = () => {
   return (
     <div className="min-h-full bg-white text-[#131e29] p-0">
       <div className="relative flex items-center justify-between min-h-[32px]">
-        <h1 className="pageTitleNeon absolute left-1/2 -translate-x-1/2 text-2xl font-bold">A MI</h1>
+        <h1 className="pageTitleNeon absolute left-1/2 -translate-x-1/2 text-2xl font-bold">PERFIL</h1>
         <button
           type="button"
           onClick={() => navigate('/dashboard')}
@@ -612,15 +612,18 @@ const Perfil = () => {
       ) : null}
 
       <div className="mt-0 px-4 py-4 border-b border-black/0">
-        <div className="space-y-3">
-          {metrics.map((m) => (
-            <div key={m.label} className="bg-white p-4 rounded-2xl">
-              <div className="flex items-center justify-between gap-3">
-                <div className="text-[12px] text-[#131e29]/60 leading-tight">{m.label}</div>
-                <div className="text-lg font-semibold text-right" style={neonCyanStyle}>
-                  {loading ? '—' : m.value}
+        <div className="bg-white rounded-2xl overflow-hidden">
+          {metrics.map((m, idx) => (
+            <div key={m.label}>
+              <div className="px-4 py-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="text-[12px] text-[#131e29]/60 leading-tight">{m.label}</div>
+                  <div className="text-lg font-semibold text-right" style={neonCyanStyle}>
+                    {loading ? '—' : m.value}
+                  </div>
                 </div>
               </div>
+              {idx < metrics.length - 1 ? <div className="h-px bg-black/10" /> : null}
             </div>
           ))}
         </div>
@@ -628,28 +631,7 @@ const Perfil = () => {
 
       <div className="mt-0 bg-white overflow-hidden border-b border-black/10">
         <div className="px-4 py-4">
-          <div className="text-sm font-semibold">Soporte</div>
-          <div className="mt-1 text-xs text-[#131e29]/60">Telegram de soporte: t.me/dajoweb</div>
-          <div className="mt-3 flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => openExternal('https://t.me/dajoweb')}
-              className="inline-flex items-center gap-2 rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-[#131e29]/80 hover:bg-black/5 transition"
-            >
-              <Headset className="w-4 h-4" />
-              Abrir soporte
-            </button>
-            <button
-              type="button"
-              onClick={() => handleCopy('https://t.me/dajoweb')}
-              className="inline-flex items-center gap-2 rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-[#131e29]/80 hover:bg-black/5 transition"
-            >
-              <Copy className="w-4 h-4" />
-              Copiar
-            </button>
-          </div>
-
-          <div className="mt-3 grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 gap-2">
             <button
               type="button"
               onClick={handleCreateDepositAddress}
@@ -658,15 +640,6 @@ const Perfil = () => {
             >
               <QrCode className="w-4 h-4" />
               Recargar
-            </button>
-            <button
-              type="button"
-              onClick={openWithdraw}
-              disabled={!isCuentaActiva || vipLoading}
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-white hover:bg-black/5 border border-black/10 px-3 py-2 text-sm font-semibold text-[#131e29] transition disabled:opacity-50"
-            >
-              <ArrowLeftRight className="w-4 h-4" />
-              Retirar
             </button>
           </div>
 
@@ -696,49 +669,11 @@ const Perfil = () => {
         <button
           type="button"
           className="w-full flex items-center justify-between px-4 py-4 hover:bg-black/5 transition"
-          onClick={openWithdraw}
-        >
-          <div className="flex items-center gap-3">
-            <ArrowLeftRight className="w-5 h-5 text-[#131e29]/70" />
-            <div className="text-sm font-semibold">Retirar</div>
-          </div>
-          <div className="text-[#131e29]/40">›</div>
-        </button>
-
-        <div className="h-px bg-black/10" />
-        <button
-          type="button"
-          className="w-full flex items-center justify-between px-4 py-4 hover:bg-black/5 transition"
           onClick={() => navigate('/tutorial')}
         >
           <div className="flex items-center gap-3">
             <BookOpen className="w-5 h-5 text-[#131e29]/70" />
             <div className="text-sm font-semibold">Tutorial</div>
-          </div>
-          <div className="text-[#131e29]/40">›</div>
-        </button>
-
-        <div className="h-px bg-black/10" />
-        <button
-          type="button"
-          className="w-full flex items-center justify-between px-4 py-4 hover:bg-black/5 transition"
-          onClick={() => openExternal('https://t.me/+ilGl4Gd5iX02ZDE5')}
-        >
-          <div className="flex items-center gap-3">
-            <Send className="w-5 h-5 text-[#131e29]/70" />
-            <div className="text-sm font-semibold">Canal de Telegram</div>
-          </div>
-          <div className="text-[#131e29]/40">›</div>
-        </button>
-        <div className="h-px bg-black/10" />
-        <button
-          type="button"
-          className="w-full flex items-center justify-between px-4 py-4 hover:bg-black/5 transition"
-          onClick={() => openExternal('https://t.me/+7A4MLkKVNQtiN2Nh')}
-        >
-          <div className="flex items-center gap-3">
-            <Users className="w-5 h-5 text-[#131e29]/70" />
-            <div className="text-sm font-semibold">Grupo de Telegram</div>
           </div>
           <div className="text-[#131e29]/40">›</div>
         </button>
