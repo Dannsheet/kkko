@@ -36,9 +36,9 @@ const Tutorial = () => {
         </div>
 
         <div className="mt-4 rounded-2xl border border-white/25 bg-white/80 backdrop-blur-md p-4 text-[12px] text-[#131e29] space-y-2 shadow-sm">
-          <div>1) Registrate y gana 1 dolar</div>
-          <div>2) Inscribete en kia para trabajar con nostros y empesar a generar ingresos llenando encuestas para kia ec</div>
-          <div>3) Recuerda que por el tipo de vehiculo a escoger sera tu recompensa diaria.</div>
+          <div>1) Regístrate y gana 1 dólar</div>
+          <div>2) Inscríbete en kia para trabajar con nostros y empezar a generar ingresos llenando encuestas para kia ec</div>
+          <div>3) Recuerda que por el tipo de vehículo a escoger será tu recompensa diaria.</div>
           <div className="pt-2">En kia pensamos en todos y damos en pleos para todos.</div>
         </div>
       </div>

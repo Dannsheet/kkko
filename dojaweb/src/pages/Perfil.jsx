@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowLeftRight, BookOpen, Copy, Gift, Headset, LogOut, QrCode, Send, Users, Wallet as WalletIcon } from 'lucide-react';
+import { BookOpen, Copy, Gift, LogOut, QrCode, Wallet as WalletIcon } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import {
@@ -27,6 +27,7 @@ const Perfil = () => {
   const [recargaAcumulada, setRecargaAcumulada] = useState(0);
   const [ganadoReferidos, setGanadoReferidos] = useState(0);
   const [ganadoVideos, setGanadoVideos] = useState(0);
+  const [ganadoResenas, setGanadoResenas] = useState(0);
   const [retiroAcumulativo, setRetiroAcumulativo] = useState(0);
   const [totalComisiones, setTotalComisiones] = useState(0);
   const [teamSize, setTeamSize] = useState(0);
@@ -45,7 +46,6 @@ const Perfil = () => {
   const lastBalanceRef = useRef(0);
 
   const [vipActive, setVipActive] = useState(false);
-  const [vipLoading, setVipLoading] = useState(false);
 
   const [withdrawOpen, setWithdrawOpen] = useState(false);
   const [withdrawLoading, setWithdrawLoading] = useState(false);
@@ -91,14 +91,6 @@ const Perfil = () => {
     setToast({ type, message });
   }, []);
 
-  const openExternal = useCallback((url) => {
-    try {
-      window.open(String(url), '_blank', 'noreferrer');
-    } catch {
-      // ignore
-    }
-  }, []);
-
   const openWithdrawSupportTelegram = useCallback(() => {
     const email = String(user?.email || '').trim();
     const message = `Hola soy ${email || ''} tengo problemas con mi retiro`;
@@ -140,10 +132,12 @@ const Perfil = () => {
       const nextRecarga = Number(cuenta?.recarga_acumulada ?? 0);
       const nextRef = Number(cuenta?.ganado_referidos ?? 0);
       const nextVideos = Number(cuenta?.ganado_videos ?? 0);
+      const nextResenas = Number(cuenta?.ganado_resenas ?? cuenta?.ganado_videos ?? 0);
       const nextWithdrawn = Number(cuenta?.retiro_acumulativo ?? 0);
       setRecargaAcumulada(Number.isFinite(nextRecarga) ? nextRecarga : 0);
       setGanadoReferidos(Number.isFinite(nextRef) ? nextRef : 0);
       setGanadoVideos(Number.isFinite(nextVideos) ? nextVideos : 0);
+      setGanadoResenas(Number.isFinite(nextResenas) ? nextResenas : 0);
       setRetiroAcumulativo(Number.isFinite(nextWithdrawn) ? nextWithdrawn : 0);
     } catch {
       setSaldoInterno(0);
@@ -151,6 +145,7 @@ const Perfil = () => {
       setRecargaAcumulada(0);
       setGanadoReferidos(0);
       setGanadoVideos(0);
+      setGanadoResenas(0);
       setRetiroAcumulativo(0);
     } finally {
       setLoading(false);
@@ -171,7 +166,6 @@ const Perfil = () => {
       alive = false;
     };
 
-    setVipLoading(true);
     getVipCurrent()
       .then((vip) => {
         if (!alive) return;
@@ -183,7 +177,7 @@ const Perfil = () => {
       })
       .finally(() => {
         if (!alive) return;
-        setVipLoading(false);
+        // ignore
       });
 
     return () => {
@@ -232,22 +226,6 @@ const Perfil = () => {
     if (!deposit) return '';
     return String(deposit?.memo || deposit?.tag || deposit?.memo_tag || '').trim();
   }, [deposit]);
-
-  const openWithdraw = () => {
-    if (!isCuentaActiva) {
-      showToast('error', 'Debes tener un plan activo para retirar');
-      return;
-    }
-    setWithdrawOpen(true);
-    setWithdrawValidated(null);
-    setWithdrawCreated(null);
-    setWithdrawNeedsPinSetup(false);
-    setWithdrawPinFailedAttempts(0);
-    setWithdrawPinResetOpen(false);
-    setWithdrawPinResetPassword('');
-    setWithdrawPinResetNewPin('');
-    setWithdrawPinResetConfirmPin('');
-  };
 
   const closeWithdraw = () => {
     setWithdrawOpen(false);
@@ -515,9 +493,10 @@ const Perfil = () => {
       const baseTotalComisiones = Number(totalComisiones || 0);
       const baseReferidos = Number(ganadoReferidos || 0);
       const baseVideos = Number(ganadoVideos || 0);
+      const baseResenas = Number(ganadoResenas || 0);
       const gananciasTotales =
         (Number.isFinite(baseReferidos) ? baseReferidos : 0) +
-        (Number.isFinite(baseVideos) ? baseVideos : 0);
+        (Number.isFinite(baseResenas) ? baseResenas : Number.isFinite(baseVideos) ? baseVideos : 0);
       const baseRetirado = Number(retiroAcumulativo || 0);
       const valorActualRaw = (Number(gananciasTotales) || 0) - (Number(baseRetirado) || 0);
       const valorActual = Number.isFinite(valorActualRaw) ? valorActualRaw : 0;
@@ -526,13 +505,16 @@ const Perfil = () => {
         { label: 'Valor Recargado (USDT)', value: Number(recargaAcumulada || 0).toFixed(2) },
         { label: 'Ingresos totales', value: Number(gananciasTotales || 0).toFixed(2) },
         { label: 'Valor actual', value: Number(valorActual || 0).toFixed(2) },
-        { label: 'Comisión de video', value: (Number.isFinite(baseVideos) ? baseVideos : 0).toFixed(2) },
+        {
+          label: 'Comisión por reseña',
+          value: (Number.isFinite(baseResenas) ? baseResenas : Number.isFinite(baseVideos) ? baseVideos : 0).toFixed(2),
+        },
         { label: 'Referidos', value: (Number.isFinite(baseTotalComisiones) ? baseTotalComisiones : 0).toFixed(2) },
         { label: 'Valor retirado', value: Number(retiroAcumulativo || 0).toFixed(2) },
         { label: 'Tamaño total del equipo', value: String(teamSize || 0) },
       ];
     },
-    [ganadoReferidos, ganadoVideos, recargaAcumulada, retiroAcumulativo, teamSize, totalComisiones],
+    [ganadoReferidos, ganadoResenas, ganadoVideos, recargaAcumulada, retiroAcumulativo, teamSize, totalComisiones],
   );
 
   const neonCyanStyle = useMemo(
