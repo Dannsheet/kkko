@@ -39,7 +39,7 @@ const Tutorial = () => {
           <div>1) Regístrate y gana 1 dólar</div>
           <div>2) Inscríbete en kia para trabajar con nostros y empezar a generar ingresos llenando encuestas para kia ec</div>
           <div>3) Recuerda que por el tipo de vehículo a escoger será tu recompensa diaria.</div>
-          <div className="pt-2">En kia pensamos en todos y damos en pleos para todos.</div>
+          <div className="pt-2">En kia pensamos en todos y damos empleos para todos.</div>
         </div>
       </div>
     </div>
