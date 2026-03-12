@@ -426,6 +426,8 @@ const WalletPage = () => {
       setWithdrawCreated(data?.retiro ?? null);
       showToast('success', 'Retiro creado. Procesando...');
       loadCuenta();
+      closeWithdraw();
+      navigate('/perfil', { replace: true });
     } catch (e) {
       console.error('[Wallet] /api/withdraw/create error', e);
       showToast('error', e?.message || 'No se pudo crear el retiro');
