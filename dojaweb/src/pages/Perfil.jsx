@@ -918,7 +918,7 @@ const Perfil = () => {
                 <input
                   value={withdrawForm.monto}
                   onChange={(e) => setWithdrawForm((p) => ({ ...p, monto: e.target.value }))}
-                  placeholder="11"
+                  placeholder="3"
                   className="w-full rounded-xl bg-white border border-black/10 px-4 py-3 text-sm outline-none focus:border-black/20"
                 />
               </div>
@@ -1072,14 +1072,6 @@ const Perfil = () => {
                 {withdrawLoading ? 'Creando...' : 'Confirmar'}
               </button>
             </div>
-
-            <button
-              type="button"
-              onClick={openWithdrawSupportTelegram}
-              className="mt-3 w-full rounded-xl bg-white hover:bg-black/5 border border-black/10 py-3 text-sm font-semibold text-[#131e29]/80 transition"
-            >
-              Problema al retirar
-            </button>
           </div>
         </div>
       )}

@@ -5,7 +5,7 @@ const Dashboard = () => {
     <div className="h-[calc(100vh-72px)] bg-white text-white relative overflow-hidden">
       <div
         className="absolute inset-0 bg-center bg-cover"
-        style={{ backgroundImage: "url(/fondo1.jpg)" }}
+        style={{ backgroundImage: "url(/fondo1.webp)" }}
         aria-hidden="true"
       />
       <div
