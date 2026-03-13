@@ -19,30 +19,10 @@ const ScrollRestore = () => {
   const location = useLocation();
 
   React.useEffect(() => {
+    // On mobile/iOS Safari, avoid manipulating html/body overflow to prevent scroll issues
+    // Just scroll to top safely
     try {
-      const html = document.documentElement;
-      const body = document.body;
-
-      html.style.overflow = '';
-      html.style.position = '';
-      html.style.height = '';
-
-      body.style.overflow = '';
-      body.style.position = '';
-      body.style.height = '';
-    } catch {
-      // ignore
-    }
-
-    // Scroll to top of the app's main scroll container if present.
-    // Falls back to window scroll for pages that use body scrolling.
-    try {
-      const el = document.querySelector('[data-scroll-container="main"]');
-      if (el && typeof el.scrollTo === 'function') {
-        el.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-      } else {
-        window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-      }
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
     } catch {
       // ignore
     }

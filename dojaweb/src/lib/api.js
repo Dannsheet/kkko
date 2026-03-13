@@ -1,5 +1,7 @@
 import { supabase } from '../supabaseClient';
 
+const _apiFetchCache = new Map();
+
 const parseJsonSafely = async (res) => {
   const text = await res.text().catch(() => '');
   if (!text) return null;
@@ -23,7 +25,9 @@ const API_BASE_URL = (() => {
   }
 })();
 
-export const apiFetch = async (path, { method = 'GET', body, headers: extraHeaders } = {}) => {
+export const apiFetch = async (path, options = {}) => {
+  const { method = 'GET', body, headers: extraHeaders, cacheTtlMs = 0 } = options;
+
   const { data } = await supabase.auth.getSession();
   const accessToken = data?.session?.access_token;
 
@@ -38,6 +42,15 @@ export const apiFetch = async (path, { method = 'GET', body, headers: extraHeade
     if (String(path || '').startsWith('/')) return `${API_BASE_URL}${path}`;
     return `${API_BASE_URL}/${path}`;
   })();
+
+  const cacheTtl = Number(cacheTtlMs || 0);
+  const canCache = method === 'GET' && body === undefined && Number.isFinite(cacheTtl) && cacheTtl > 0;
+  const cacheKey = canCache ? `${accessToken || ''}|${url}` : '';
+  if (canCache) {
+    const hit = _apiFetchCache.get(cacheKey);
+    if (hit && hit.expiresAt > Date.now()) return hit.payload;
+    if (hit) _apiFetchCache.delete(cacheKey);
+  }
 
   if (
     import.meta.env.PROD &&
@@ -71,10 +84,16 @@ export const apiFetch = async (path, { method = 'GET', body, headers: extraHeade
     throw err;
   }
 
+  if (canCache) {
+    _apiFetchCache.set(cacheKey, { expiresAt: Date.now() + cacheTtl, payload });
+  } else if (method !== 'GET') {
+    _apiFetchCache.clear();
+  }
+
   return payload;
 };
 
-export const getMe = () => apiFetch('/api/me');
+export const getMe = () => apiFetch('/api/me', { cacheTtlMs: 8000 });
 
 export const adminGetSummary = () => apiFetch('/api/admin/summary');
 
@@ -289,9 +308,9 @@ export const getMyPlans = async () => {
   }
 };
 
-export const getReviewsStatus = () => apiFetch('/api/reviews/status');
+export const getReviewsStatus = () => apiFetch('/api/reviews/status', { cacheTtlMs: 12000 });
 
-export const getReviewsModels = () => apiFetch('/api/reviews/models');
+export const getReviewsModels = () => apiFetch('/api/reviews/models', { cacheTtlMs: 60000 });
 
 export const submitReview = ({ modelo_id, estrellas, comentario, plan_id } = {}) =>
   apiFetch('/api/reviews/enviar', {
@@ -307,7 +326,10 @@ export const verVideo = ({ video_id, calificacion, comentario, plan_id } = {}) =
 
 export const getCuentaInfo = async () => {
   const ts = Date.now();
-  const [cuentaRes, meRes] = await Promise.allSettled([apiFetch(`/api/cuenta/info?ts=${ts}`), getMe()]);
+  const [cuentaRes, meRes] = await Promise.allSettled([
+    apiFetch(`/api/cuenta/info?ts=${ts}`, { cacheTtlMs: 8000 }),
+    getMe(),
+  ]);
 
   const cuenta = cuentaRes.status === 'fulfilled' ? cuentaRes.value : null;
   const me = meRes.status === 'fulfilled' ? meRes.value : null;
@@ -341,7 +363,7 @@ export const getMyCommissions = () => apiFetch('/api/referrals/me/commissions');
 
 export const getMyReferralProfile = () => apiFetch('/api/referrals/me/profile');
 
-export const getMyReferralStats = () => apiFetch('/api/referrals/me/stats');
+export const getMyReferralStats = () => apiFetch('/api/referrals/me/stats', { cacheTtlMs: 15000 });
 
 export const getMyDeposits = () => apiFetch('/api/deposits/me');
 

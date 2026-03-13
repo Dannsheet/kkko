@@ -5,7 +5,7 @@ import AnnouncementsModal from '../components/Announcements/AnnouncementsModal';
 
 const ProtectedLayout = () => {
   return (
-    <div className="min-h-screen bg-white text-[#131e29] pb-20">
+    <div className="h-screen bg-white text-[#131e29] pb-20 overflow-y-auto">
       <AnnouncementsModal />
       <Outlet />
       <BottomTabBar />
