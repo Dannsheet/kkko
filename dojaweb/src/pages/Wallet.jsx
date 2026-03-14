@@ -191,9 +191,9 @@ const WalletPage = () => {
 
   const isCuentaActiva = useMemo(() => Boolean(vipActive), [vipActive]);
 
-  const withdrawFees = useMemo(
+  const withdrawFeePercent = useMemo(
     () => ({
-      'BEP20-USDT': 1,
+      'BEP20-USDT': 0.1,
     }),
     [],
   );
@@ -306,11 +306,12 @@ const WalletPage = () => {
     if (!Number.isFinite(monto) || monto <= 0) return 'Monto inválido';
     if (!withdrawForm.red) return 'Debes seleccionar una red';
 
-    const fee = Number(withdrawFees?.[withdrawForm.red]);
-    if (!Number.isFinite(fee) || fee <= 0) return 'Red no soportada';
+    const feePercent = Number(withdrawFeePercent?.[withdrawForm.red]);
+    if (!Number.isFinite(feePercent) || feePercent <= 0) return 'Red no soportada';
 
     if (monto < 3) return `El retiro mínimo es 3 USDT. Ingresa mínimo ${Number(3).toFixed(2)} USDT`;
 
+    const fee = Math.round(monto * feePercent * 100) / 100;
     const neto = monto - fee;
     if (!Number.isFinite(neto) || neto <= 0) return 'Monto inválido';
 
@@ -613,7 +614,7 @@ const WalletPage = () => {
 
         {isCuentaActiva ? (
           <div className="mt-3 text-[11px] text-[#131e29]/70">
-            El retiro mínimo es de 3 USDT. Se descontará comisión de 1 USDT por retiro
+            El retiro mínimo es de 3 USDT. Se descontará comisión del 10% por retiro
           </div>
         ) : null}
 
