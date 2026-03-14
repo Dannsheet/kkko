@@ -144,26 +144,40 @@ const VIP = () => {
     setLoadError(null);
     try {
       let latestSubs = [];
-      const [planesData, modelsData] = await Promise.allSettled([apiFetch('/api/vip/planes'), getReviewsModels()]);
+      const [planesData, modelsData, cuentaData, myPlansData, statusData] = await Promise.allSettled([
+        apiFetch('/api/vip/planes'),
+        getReviewsModels(),
+        getCuentaInfo(),
+        getMyPlans(),
+        getReviewsStatus(),
+      ]);
 
       setPlans(planesData.status === 'fulfilled' && Array.isArray(planesData.value) ? planesData.value : []);
       setReviewsModels(modelsData.status === 'fulfilled' && Array.isArray(modelsData.value) ? modelsData.value : []);
 
-      const cuenta = await getCuentaInfo();
-      const nextBalance = Number(cuenta?.balance || 0);
-      setBalance(Number.isFinite(nextBalance) ? nextBalance : 0);
+      if (cuentaData.status === 'fulfilled') {
+        const cuenta = cuentaData.value;
+        const nextBalance = Number(cuenta?.balance || 0);
+        setBalance(Number.isFinite(nextBalance) ? nextBalance : 0);
+      } else {
+        setBalance(0);
+      }
 
       try {
-        const myPlansResp = await getMyPlans();
-        const planes = Array.isArray(myPlansResp?.planes) ? myPlansResp.planes : [];
-        latestSubs = planes;
-        setActiveSubs(planes);
+        if (myPlansData.status === 'fulfilled') {
+          const myPlansResp = myPlansData.value;
+          const planes = Array.isArray(myPlansResp?.planes) ? myPlansResp.planes : [];
+          latestSubs = planes;
+          setActiveSubs(planes);
 
-        if (planes.length) {
-          setActiveSub(planes[0] || null);
+          if (planes.length) {
+            setActiveSub(planes[0] || null);
+          } else {
+            const miPlan = await getMyPlan();
+            setActiveSub(miPlan || null);
+          }
         } else {
-          const miPlan = await getMyPlan();
-          setActiveSub(miPlan || null);
+          throw myPlansData.reason;
         }
       } catch (e) {
         const msg = String(e?.message || '');
@@ -177,14 +191,14 @@ const VIP = () => {
         }
       }
 
-      try {
-        const status = await getReviewsStatus();
+      if (statusData.status === 'fulfilled') {
+        const status = statusData.value;
         setReviewsStatus(status || null);
         const ids = Array.isArray(status?.planes)
           ? status.planes.map((p) => Number(p?.plan_id)).filter((id) => Number.isFinite(id))
           : [];
         setActivePlanIds(Array.from(new Set(ids)));
-      } catch {
+      } else {
         const fallbackIds = Array.isArray(latestSubs)
           ? latestSubs
               .map((s) => Number(s?.plan_id))
