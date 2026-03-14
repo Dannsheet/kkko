@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+**/*Seed Phrase*.txt
+**/*seed phrase*.txt
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

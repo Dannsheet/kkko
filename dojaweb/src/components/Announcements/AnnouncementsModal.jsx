@@ -70,15 +70,15 @@ const AnnouncementsModal = () => {
           </div>
 
           <div className="space-y-2">
-            <div>VIP1: Inversión $14 —$1</div>
-            <div>VIP2: Inversión $28 —$2</div>
-            <div>VIP3: Inversión $42 —$3</div>
-            <div>VIP4: Inversión $70 -$5</div>
-            <div>VIP5: Inversión $112 -$7</div>
-            <div>VIP6: Inversión $196 - $12</div>
-            <div>VIP7: Inversión $350 —$22</div>
-            <div>VIP8: Inversión $560 -$35</div>
-            <div>VIP9: Inversión $700 -$44</div>
+            <div>Kia Picanto - $20 - $1 diario</div>
+            <div>Kia Soluto - $40 - $2 diario</div>
+            <div>Kia Rio - $80 - $4 diario</div>
+            <div>Kia Seltos - $160 - $8 diario</div>
+            <div>Kia Cerato - $240 - $12 diario</div>
+            <div>Kia Sportage - $360 - $18 diario</div>
+            <div>Kia Sorento - $500 - $25 diario</div>
+            <div>Kia Carnival - $700 - $35 diario</div>
+            <div>Kia Carens - $900 - $45 diario</div>
           </div>
 
           <div>� Mientras mayor sea tu plan, mayor será tu ganancia por cada reseña realizada.</div>
