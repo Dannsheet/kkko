@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowLeftRight, BookOpen, Copy, Gift, LogOut, QrCode, Wallet as WalletIcon } from 'lucide-react';
+import { ArrowLeftRight, BookOpen, Copy, Gift, LogOut, MessageCircle, QrCode, Wallet as WalletIcon } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import {
@@ -214,12 +214,20 @@ const Perfil = () => {
     setWithdrawPinResetConfirmPin('');
   }, [isCuentaActiva, shouldOpenWithdrawFromNav, showToast]);
 
-  const withdrawFees = useMemo(
+  const withdrawFeePercent = useMemo(
     () => ({
-      'BEP20-USDT': 1,
+      'BEP20-USDT': 0.1,
     }),
     [],
   );
+
+  const openWhatsappGroup = useCallback(() => {
+    window.open('https://chat.whatsapp.com/GMGASUXKV1HBYwSNJLK6Mn?mode=gi_t', '_blank', 'noopener,noreferrer');
+  }, []);
+
+  const openWhatsappChannel = useCallback(() => {
+    window.open('https://whatsapp.com/channel/0029Vb88zCT5EjxxoSW3JJ1y', '_blank', 'noopener,noreferrer');
+  }, []);
 
   const depositNetwork = useMemo(() => {
     if (!deposit) return '';
@@ -376,9 +384,10 @@ const Perfil = () => {
     const monto = Number(withdrawForm.monto);
     if (!Number.isFinite(monto) || monto <= 0) return 'Monto inválido';
     if (!withdrawForm.red) return 'Debes seleccionar una red';
-    const fee = Number(withdrawFees?.[withdrawForm.red]);
-    if (!Number.isFinite(fee) || fee <= 0) return 'Red no soportada';
+    const feePercent = Number(withdrawFeePercent?.[withdrawForm.red]);
+    if (!Number.isFinite(feePercent) || feePercent <= 0) return 'Red no soportada';
     if (monto < 3) return `El retiro mínimo es 3 USDT. Ingresa mínimo ${Number(3).toFixed(2)} USDT`;
+    const fee = Math.round(monto * feePercent * 100) / 100;
     const neto = monto - fee;
     if (!Number.isFinite(neto) || neto <= 0) return 'Monto inválido';
     if (!withdrawForm.direccion.trim()) return 'Debes ingresar una dirección externa';
@@ -500,10 +509,18 @@ const Perfil = () => {
   useEffect(() => {
     let alive = true;
     const run = async () => {
+      if (!user?.id) return;
       try {
         const resp = await getMyReferralStats();
         const v = Number(resp?.totalIngresos ?? 0);
-        const niveles = Array.isArray(resp?.niveles) ? resp.niveles : [];
+        const nivelesRaw = Array.isArray(resp?.niveles) ? resp.niveles : [];
+        const byLevel = new Map();
+        for (const row of nivelesRaw) {
+          const lvl = Number(row?.nivel);
+          if (!Number.isFinite(lvl)) continue;
+          if (!byLevel.has(lvl)) byLevel.set(lvl, row);
+        }
+        const niveles = Array.from(byLevel.values());
         const size = niveles.reduce((acc, n) => acc + (Number(n?.plantillaTotal || 0) || 0), 0);
         if (!alive) return;
         setComisionesError('');
@@ -520,7 +537,7 @@ const Perfil = () => {
     return () => {
       alive = false;
     };
-  }, []);
+  }, [user?.id]);
 
   useEffect(() => {
     let alive = true;
@@ -670,7 +687,7 @@ const Perfil = () => {
             <div className="mt-2 text-[11px] text-red-400">Debes tener un plan activo para poder retirar.</div>
           ) : (
             <div className="mt-2 text-[11px] text-[#131e29]/70">
-              El retiro mínimo es de 3 USDT. Se descontará comisión de 1 USDT por retiro
+              El retiro mínimo es de 3 USDT. Se descontará comisión del 10% por retiro
             </div>
           )}
         </div>
@@ -768,6 +785,32 @@ const Perfil = () => {
             )}
           </div>
         ) : null}
+
+        <div className="h-px bg-black/10" />
+        <button
+          type="button"
+          className="w-full flex items-center justify-between px-4 py-4 transition bg-green-600 hover:bg-green-700 text-white"
+          onClick={openWhatsappGroup}
+        >
+          <div className="flex items-center gap-3">
+            <MessageCircle className="w-5 h-5 text-white" />
+            <div className="text-sm font-semibold">Unirme al grupo WhatsApp</div>
+          </div>
+          <div className="text-white/80">›</div>
+        </button>
+
+        <div className="h-px bg-black/10" />
+        <button
+          type="button"
+          className="w-full flex items-center justify-between px-4 py-4 hover:bg-black/5 transition"
+          onClick={openWhatsappChannel}
+        >
+          <div className="flex items-center gap-3">
+            <MessageCircle className="w-5 h-5 text-[#131e29]/70" />
+            <div className="text-sm font-semibold">Canal de WhatsApp</div>
+          </div>
+          <div className="text-[#131e29]/40">›</div>
+        </button>
 
         <div className="h-px bg-black/10" />
         <button

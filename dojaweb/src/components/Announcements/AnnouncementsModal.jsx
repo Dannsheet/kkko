@@ -1,10 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
+import { useLocation } from 'react-router-dom';
 
 const ANNOUNCEMENTS_VERSION = 'v3';
 
 const AnnouncementsModal = () => {
   const { user, loading } = useAuth();
+  const location = useLocation();
   const [open, setOpen] = useState(false);
   const [page, setPage] = useState(0);
 
@@ -18,6 +20,12 @@ const AnnouncementsModal = () => {
     const id = window.setTimeout(() => {
       if (!user?.id) {
         setOpen(false);
+        setPage(0);
+        return;
+      }
+
+      if (String(location?.pathname || '') === '/dashboard') {
+        setOpen(true);
         setPage(0);
         return;
       }
@@ -37,7 +45,7 @@ const AnnouncementsModal = () => {
     }, 0);
 
     return () => window.clearTimeout(id);
-  }, [loading, storageKey, user?.id]);
+  }, [loading, location?.pathname, storageKey, user?.id]);
 
   const pages = useMemo(
     () => [
@@ -60,29 +68,28 @@ const AnnouncementsModal = () => {
         </div>
       </div>,
 
-      <div key="p2" className="text-sm text-white/90 leading-relaxed">
-        <div className="text-center font-bold">� Planes de Reseñas Disponibles</div>
+      <div key="p2" className="flex items-center justify-center">
+        <img
+          src="/page01.jpeg"
+          alt="Anuncio 1"
+          className="w-full h-auto max-h-[55vh] object-contain rounded-xl"
+        />
+      </div>,
 
-        <div className="mt-4 space-y-3">
-          <div>
-            En la plataforma puedes elegir el plan que mejor se adapte a ti y comenzar a generar ganancias por cada
-            reseña completada.
-          </div>
+      <div key="p3" className="flex items-center justify-center">
+        <img
+          src="/page02.webp"
+          alt="Anuncio 2"
+          className="w-full h-auto max-h-[55vh] object-contain rounded-xl"
+        />
+      </div>,
 
-          <div className="space-y-2">
-            <div>Kia Picanto - $20 - $1 diario</div>
-            <div>Kia Soluto - $40 - $2 diario</div>
-            <div>Kia Rio - $80 - $4 diario</div>
-            <div>Kia Seltos - $160 - $8 diario</div>
-            <div>Kia Cerato - $240 - $12 diario</div>
-            <div>Kia Sportage - $360 - $18 diario</div>
-            <div>Kia Sorento - $500 - $25 diario</div>
-            <div>Kia Carnival - $700 - $35 diario</div>
-            <div>Kia Carens - $900 - $45 diario</div>
-          </div>
-
-          <div>� Mientras mayor sea tu plan, mayor será tu ganancia por cada reseña realizada.</div>
-        </div>
+      <div key="p4" className="flex items-center justify-center">
+        <img
+          src="/page03.jpeg"
+          alt="Anuncio 3"
+          className="w-full h-auto max-h-[55vh] object-contain rounded-xl"
+        />
       </div>,
     ],
     [],

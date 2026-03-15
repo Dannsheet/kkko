@@ -25,34 +25,33 @@ const Invitar = () => {
     const run = async () => {
       try {
         setInviteCodeLoading(true);
-        const resp = await getMyReferralProfile();
-        const code = String(resp?.invite_code || resp?.inviteCode || '').trim();
-        if (alive && code) setServerInviteCode(code);
-      } catch {
-        // ignore
-      } finally {
-        if (alive) setInviteCodeLoading(false);
-      }
-    };
-    run();
-    return () => {
-      alive = false;
-    };
-  }, [user?.id]);
-
-  useEffect(() => {
-    let alive = true;
-    const run = async () => {
-      try {
         setRefStatsLoading(true);
-        const resp = await getMyReferralStats();
+
+        const [profileRes, statsRes] = await Promise.allSettled([
+          getMyReferralProfile(),
+          getMyReferralStats(),
+        ]);
+
         if (!alive) return;
-        setRefStats(resp || null);
+
+        if (profileRes.status === 'fulfilled') {
+          const code = String(profileRes.value?.invite_code || profileRes.value?.inviteCode || '').trim();
+          setServerInviteCode(code);
+        }
+
+        if (statsRes.status === 'fulfilled') {
+          setRefStats(statsRes.value || null);
+        } else {
+          setRefStats(null);
+        }
       } catch {
         if (!alive) return;
         setRefStats(null);
       } finally {
-        if (alive) setRefStatsLoading(false);
+        if (alive) {
+          setInviteCodeLoading(false);
+          setRefStatsLoading(false);
+        }
       }
     };
     run();
@@ -84,6 +83,27 @@ const Invitar = () => {
     },
     [showToast],
   );
+
+  const normalizedNiveles = useMemo(() => {
+    const niveles = Array.isArray(refStats?.niveles) ? refStats.niveles : [];
+    if (!niveles.length) return [];
+    const byLevel = new Map();
+    for (const row of niveles) {
+      const lvl = Number(row?.nivel);
+      if (!Number.isFinite(lvl)) continue;
+      if (!byLevel.has(lvl)) byLevel.set(lvl, row);
+    }
+    const normalize = (nivel) => {
+      const src = byLevel.get(Number(nivel)) || {};
+      return {
+        nivel,
+        plantillaTotal: Number(src?.plantillaTotal ?? 0) || 0,
+        numeroActivos: Number(src?.numeroActivos ?? 0) || 0,
+        equipoRecarga: Number(src?.equipoRecarga ?? 0) || 0,
+      };
+    };
+    return [normalize(1), normalize(2), normalize(3)];
+  }, [refStats?.niveles]);
 
   return (
     <div className="min-h-full bg-white text-[#131e29] p-4">
@@ -138,9 +158,9 @@ const Invitar = () => {
           <div className="text-sm font-semibold text-center">Niveles de referidos</div>
           {refStatsLoading ? (
             <div className="mt-2 text-sm text-[#131e29]/60 text-center">Cargando...</div>
-          ) : Array.isArray(refStats?.niveles) && refStats.niveles.length ? (
+          ) : normalizedNiveles.length ? (
             <div className="mt-3 grid grid-cols-1 gap-3">
-              {refStats.niveles.slice(0, 3).map((lvl) => (
+              {normalizedNiveles.map((lvl) => (
                 <div key={lvl?.nivel} className="rounded-2xl border border-black/10 bg-white p-3">
                   <div className="text-sm font-semibold text-center">Nivel {lvl?.nivel}</div>
                   <div className="mt-2 grid grid-cols-3 gap-2 text-center">
