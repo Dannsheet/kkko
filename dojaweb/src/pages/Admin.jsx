@@ -213,13 +213,13 @@ const Admin = () => {
       </div>
 
       <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="rounded-2xl border border-white/10 bg-doja-dark/70 p-4">
+        <div className="rounded-2xl border border-black/10 bg-white p-4 text-[#131e29]">
           <div className="flex items-center justify-between gap-3">
             <div className="text-sm font-semibold inline-flex items-center gap-2">
               <Users className="w-4 h-4" />
               Usuarios
             </div>
-            <div className="text-xs text-white/60">{usersLoading ? 'Cargando...' : `${users.length}`}</div>
+            <div className="text-xs text-[#131e29]/60">{usersLoading ? 'Cargando...' : `${users.length}`}</div>
           </div>
 
           <div className="mt-3">
@@ -227,12 +227,12 @@ const Admin = () => {
               value={userSearch}
               onChange={(e) => setUserSearch(e.target.value)}
               placeholder="Buscar por correo"
-              className="w-full rounded-xl bg-doja-bg/30 border border-white/10 px-4 py-3 text-sm outline-none focus:border-doja-cyan/50"
+              className="w-full rounded-xl bg-white border border-black/10 px-4 py-3 text-sm outline-none focus:border-black/30"
             />
             <button
               type="button"
               onClick={loadUsers}
-              className="mt-3 w-full rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 py-3 text-sm font-semibold transition"
+              className="mt-3 w-full rounded-xl bg-[#131e29] hover:opacity-90 border border-[#131e29] py-3 text-sm font-semibold transition text-white"
               disabled={usersLoading}
             >
               {usersLoading ? 'Buscando...' : 'Buscar'}
@@ -240,12 +240,12 @@ const Admin = () => {
           </div>
 
           {usersLoading ? (
-            <div className="mt-4 flex items-center justify-center text-white/60">
+            <div className="mt-4 flex items-center justify-center text-[#131e29]/60">
               <Loader2 className="w-5 h-5 animate-spin mr-2" />
               Cargando...
             </div>
           ) : users.length ? (
-            <div className="mt-4 max-h-[60vh] overflow-y-auto rounded-xl border border-white/10">
+            <div className="mt-4 max-h-[60vh] overflow-y-auto rounded-xl border border-black/10">
               {users.map((u) => (
                 <button
                   key={u.id}
@@ -256,35 +256,35 @@ const Admin = () => {
                   }}
                   className={
                     selectedUserId === u.id
-                      ? 'w-full text-left px-4 py-3 border-b border-white/10 bg-white/10'
-                      : 'w-full text-left px-4 py-3 border-b border-white/10 hover:bg-white/5'
+                      ? 'w-full text-left px-4 py-3 border-b border-black/10 bg-black/5'
+                      : 'w-full text-left px-4 py-3 border-b border-black/10 hover:bg-black/5'
                   }
                 >
-                  <div className="text-sm text-white/90 break-words">{u.email || u.id}</div>
-                  <div className="mt-1 text-xs text-white/50 font-mono break-all">{u.id}</div>
+                  <div className="text-sm text-[#131e29] break-words">{u.email || u.id}</div>
+                  <div className="mt-1 text-xs text-[#131e29]/60 font-mono break-all">{u.id}</div>
                 </button>
               ))}
             </div>
           ) : (
-            <div className="mt-4 text-sm text-white/60">No hay usuarios</div>
+            <div className="mt-4 text-sm text-[#131e29]/60">No hay usuarios</div>
           )}
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-doja-dark/70 p-4">
+        <div className="rounded-2xl border border-black/10 bg-white p-4 text-[#131e29]">
           <div className="text-sm font-semibold">Detalle del usuario</div>
 
           {!selectedUserId ? (
-            <div className="mt-3 text-sm text-white/60">Selecciona un usuario para ver detalles.</div>
+            <div className="mt-3 text-sm text-[#131e29]/60">Selecciona un usuario para ver detalles.</div>
           ) : selectedLoading ? (
-            <div className="mt-4 flex items-center justify-center text-white/60">
+            <div className="mt-4 flex items-center justify-center text-[#131e29]/60">
               <Loader2 className="w-5 h-5 animate-spin mr-2" />
               Cargando...
             </div>
           ) : selectedUser?.user ? (
             <div className="mt-3">
-              <div className="rounded-xl border border-white/10 bg-doja-bg/30 p-3">
-                <div className="text-sm text-white/90 break-words">{selectedUser.user.email || selectedUser.user.id}</div>
-                <div className="mt-1 text-xs text-white/60 font-mono break-all">{selectedUser.user.id}</div>
+              <div className="rounded-xl border border-black/10 bg-white p-3">
+                <div className="text-sm text-[#131e29] break-words">{selectedUser.user.email || selectedUser.user.id}</div>
+                <div className="mt-1 text-xs text-[#131e29]/60 font-mono break-all">{selectedUser.user.id}</div>
               </div>
 
               {selectedUser?.wallet?.deposit_address ? (
@@ -400,7 +400,7 @@ const Admin = () => {
               <button
                 type="button"
                 onClick={openReferrals}
-                className="mt-4 w-full rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 py-3 text-sm font-semibold transition"
+                className="mt-4 w-full rounded-xl bg-[#131e29] hover:opacity-90 border border-[#131e29] py-3 text-sm font-semibold transition text-white"
               >
                 Ver referidos
               </button>
