@@ -27,6 +27,7 @@ const API_BASE_URL = (() => {
 
 export const apiFetch = async (path, options = {}) => {
   const { method = 'GET', body, headers: extraHeaders, cacheTtlMs = 0 } = options;
+  const t0 = Date.now();
 
   const { data } = await supabase.auth.getSession();
   const accessToken = data?.session?.access_token;
@@ -68,6 +69,18 @@ export const apiFetch = async (path, options = {}) => {
     headers,
     body: body === undefined ? undefined : JSON.stringify(body),
   });
+
+  if (!import.meta.env.PROD) {
+    const dt = Date.now() - t0;
+    if (dt >= 800) {
+      try {
+        // eslint-disable-next-line no-console
+        console.log(`[apiFetch] ${method} ${url} ${dt}ms`);
+      } catch {
+        // ignore
+      }
+    }
+  }
 
   const payload = await parseJsonSafely(res);
 
@@ -284,7 +297,7 @@ export const getMyPlan = () => apiFetch('/api/suscripcion/mi-plan');
 
 export const getMyPlans = async () => {
   try {
-    return await apiFetch('/api/suscripcion/mis-planes');
+    return await apiFetch('/api/suscripcion/mis-planes', { cacheTtlMs: 12000 });
   } catch (e) {
     if (e?.status !== 404) throw e;
     const single = await getMyPlan();
@@ -325,9 +338,8 @@ export const verVideo = ({ video_id, calificacion, comentario, plan_id } = {}) =
   submitReview({ modelo_id: video_id, estrellas: calificacion, comentario, plan_id });
 
 export const getCuentaInfo = async () => {
-  const ts = Date.now();
   const [cuentaRes, meRes] = await Promise.allSettled([
-    apiFetch(`/api/cuenta/info?ts=${ts}`, { cacheTtlMs: 8000 }),
+    apiFetch('/api/cuenta/info', { cacheTtlMs: 8000 }),
     getMe(),
   ]);
 
@@ -361,8 +373,7 @@ export const getMyReferrals = () => apiFetch('/api/referrals/me/referrals');
 
 export const getMyCommissions = () => apiFetch('/api/referrals/me/commissions');
 
-export const getMyReferralProfile = () => apiFetch('/api/referrals/me/profile');
-
+export const getMyReferralProfile = () => apiFetch('/api/referrals/me/profile', { cacheTtlMs: 60000 });
 export const getMyReferralStats = () => apiFetch('/api/referrals/me/stats', { cacheTtlMs: 15000 });
 
 export const getMyDeposits = () => apiFetch('/api/deposits/me');

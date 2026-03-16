@@ -145,7 +145,7 @@ const VIP = () => {
     try {
       let latestSubs = [];
       const [planesData, modelsData, cuentaData, myPlansData, statusData] = await Promise.allSettled([
-        apiFetch('/api/vip/planes'),
+        apiFetch('/api/vip/planes', { cacheTtlMs: 60000 }),
         getReviewsModels(),
         getCuentaInfo(),
         getMyPlans(),

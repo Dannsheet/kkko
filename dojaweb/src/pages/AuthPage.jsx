@@ -1,10 +1,11 @@
 import React from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import Auth from '../components/Auth/Auth';
 import { useAuth } from '../hooks/useAuth';
 
 const AuthPage = () => {
   const { session, loading } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -14,7 +15,11 @@ const AuthPage = () => {
     );
   }
 
-  if (session) return <Navigate to="/dashboard" replace />;
+  if (session) {
+    const fromPath = location?.state?.from?.pathname;
+    const target = typeof fromPath === 'string' && fromPath.startsWith('/') ? fromPath : '/dashboard';
+    return <Navigate to={target} replace />;
+  }
 
   return <Auth />;
 };
