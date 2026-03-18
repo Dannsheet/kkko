@@ -147,7 +147,7 @@ const AnnouncementsModal = () => {
           <button
             type="button"
             onClick={next}
-            className="text-sm font-medium text-doja-light-cyan"
+            className="text-sm font-medium text-white"
           >
             {isLast ? 'Cerrar' : 'Siguiente'}
           </button>
