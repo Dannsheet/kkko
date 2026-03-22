@@ -74,7 +74,6 @@ export const apiFetch = async (path, options = {}) => {
     const dt = Date.now() - t0;
     if (dt >= 800) {
       try {
-        // eslint-disable-next-line no-console
         console.log(`[apiFetch] ${method} ${url} ${dt}ms`);
       } catch {
         // ignore
@@ -136,6 +135,23 @@ export const adminConfirmUserWithdrawal = ({ userId, withdrawalId }) => {
     `/api/admin/users/${encodeURIComponent(String(userId))}/withdrawals/${encodeURIComponent(String(withdrawalId))}/confirm`,
     { method: 'POST' },
   );
+};
+
+export const adminGetBankDeposits = ({ limit } = {}) => {
+  const params = new URLSearchParams();
+  if (Number.isFinite(Number(limit))) params.set('limit', String(limit));
+  const q = params.toString();
+  return apiFetch(`/api/admin/bank-deposits${q ? `?${q}` : ''}`);
+};
+
+export const adminApproveBankDeposit = (id) => {
+  if (!id) throw new Error('Falta id');
+  return apiFetch(`/api/admin/bank-deposits/${encodeURIComponent(String(id))}/approve`, { method: 'POST' });
+};
+
+export const adminRejectBankDeposit = (id) => {
+  if (!id) throw new Error('Falta id');
+  return apiFetch(`/api/admin/bank-deposits/${encodeURIComponent(String(id))}/reject`, { method: 'POST' });
 };
 
 export const getWalletHistory = () => apiFetch('/api/wallet/history');
@@ -377,6 +393,11 @@ export const getMyReferralProfile = () => apiFetch('/api/referrals/me/profile', 
 export const getMyReferralStats = () => apiFetch('/api/referrals/me/stats', { cacheTtlMs: 15000 });
 
 export const getMyDeposits = () => apiFetch('/api/deposits/me');
+
+export const getMyBankDeposits = () => apiFetch('/api/bank/deposits/me');
+
+export const createBankDeposit = ({ amount, receipt_path }) =>
+  apiFetch('/api/bank/deposits', { method: 'POST', body: { amount, receipt_path } });
 
 export const getMyWithdrawals = () => apiFetch('/api/withdraw/me');
 

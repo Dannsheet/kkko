@@ -4,6 +4,9 @@ import { Loader2, RefreshCw, Users } from 'lucide-react';
 import {
   adminConfirmUserWithdrawal,
   adminGetSummary,
+  adminGetBankDeposits,
+  adminApproveBankDeposit,
+  adminRejectBankDeposit,
   adminGetUserDetail,
   adminGetUserReferrals,
   adminGetUsers,
@@ -30,6 +33,10 @@ const Admin = () => {
   const [selectedReferralsLoading, setSelectedReferralsLoading] = useState(false);
   const [selectedReferrals, setSelectedReferrals] = useState(null);
 
+  const [bankDepositsLoading, setBankDepositsLoading] = useState(false);
+  const [bankDeposits, setBankDeposits] = useState([]);
+  const [bankActionId, setBankActionId] = useState(null);
+
   useEffect(() => {
     if (!toast) return;
     const id = window.setTimeout(() => setToast(null), 3500);
@@ -42,6 +49,18 @@ const Admin = () => {
     setError(null);
     const data = await adminGetSummary();
     setSummary(data || null);
+  }, []);
+
+  const loadBankDeposits = useCallback(async () => {
+    setBankDepositsLoading(true);
+    try {
+      const resp = await adminGetBankDeposits({ limit: 100 });
+      setBankDeposits(Array.isArray(resp?.items) ? resp.items : []);
+    } catch {
+      setBankDeposits([]);
+    } finally {
+      setBankDepositsLoading(false);
+    }
   }, []);
 
   const loadUsers = useCallback(async () => {
@@ -70,14 +89,42 @@ const Admin = () => {
   const loadAll = useCallback(async () => {
     setLoading(true);
     try {
-      await Promise.all([loadSummary(), loadUsers()]);
+      await Promise.all([loadSummary(), loadUsers(), loadBankDeposits()]);
     } catch (e) {
       console.error('[Admin] load error', e);
       setError(e?.message || 'No se pudo cargar el panel admin');
     } finally {
       setLoading(false);
     }
-  }, [loadSummary, loadUsers]);
+  }, [loadSummary, loadUsers, loadBankDeposits]);
+
+  const handleApproveBankDeposit = async (id) => {
+    if (!id) return;
+    setBankActionId(id);
+    try {
+      await adminApproveBankDeposit(id);
+      showToast('success', 'Depósito banco aprobado');
+      await Promise.all([loadBankDeposits(), loadSummary()]);
+    } catch (e) {
+      showToast('error', e?.message || 'No se pudo aprobar');
+    } finally {
+      setBankActionId(null);
+    }
+  };
+
+  const handleRejectBankDeposit = async (id) => {
+    if (!id) return;
+    setBankActionId(id);
+    try {
+      await adminRejectBankDeposit(id);
+      showToast('success', 'Depósito banco rechazado');
+      await loadBankDeposits();
+    } catch (e) {
+      showToast('error', e?.message || 'No se pudo rechazar');
+    } finally {
+      setBankActionId(null);
+    }
+  };
 
   useEffect(() => {
     loadAll();
@@ -169,18 +216,22 @@ const Admin = () => {
         </button>
       </div>
 
-      <div className="mt-4 grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="mt-4 grid grid-cols-1 md:grid-cols-5 gap-4">
         <div className="rounded-2xl border border-black/10 bg-white p-4">
           <div className="text-xs text-[#131e29]/60">Usuarios</div>
           <div className="mt-2 text-2xl font-bold text-[#131e29]">{Number(summary?.users_count ?? 0)}</div>
         </div>
         <div className="rounded-2xl border border-black/10 bg-white p-4">
-          <div className="text-xs text-[#131e29]/60">Monto recargado (total)</div>
+          <div className="text-xs text-[#131e29]/60">Monto recargado (cripto)</div>
           <div className="mt-2 text-2xl font-bold text-[#131e29]">{Number(summary?.deposits_total ?? 0).toFixed(2)} USDT</div>
         </div>
         <div className="rounded-2xl border border-black/10 bg-white p-4">
-          <div className="text-xs text-[#131e29]/60">Ganancias (reseñas + referidos)</div>
-          <div className="mt-2 text-2xl font-bold text-[#131e29]">{Number(summary?.earnings_total ?? 0).toFixed(2)} USDT</div>
+          <div className="text-xs text-[#131e29]/60">Monto recargado total banco</div>
+          <div className="mt-2 text-2xl font-bold text-[#131e29]">{Number(summary?.bank_deposits_total ?? 0).toFixed(2)} USDT</div>
+        </div>
+        <div className="rounded-2xl border border-black/10 bg-white p-4">
+          <div className="text-xs text-[#131e29]/60">Monto recargado total general</div>
+          <div className="mt-2 text-2xl font-bold text-[#131e29]">{Number(summary?.total_recharged_general ?? 0).toFixed(2)} USDT</div>
         </div>
         <div className="rounded-2xl border border-black/10 bg-white p-4">
           <div className="text-xs text-[#131e29]/60">Retiros (confirmados)</div>
@@ -190,6 +241,71 @@ const Admin = () => {
             intentos: {Number(summary?.withdrawals_attempts_count ?? 0)} · monto intentos:{' '}
             {Number(summary?.withdrawals_attempts_total ?? 0).toFixed(2)} USDT
           </div>
+        </div>
+      </div>
+
+      <div className="mt-6 rounded-2xl border border-black/10 bg-white p-4">
+        <div className="flex items-center justify-between gap-3">
+          <div className="text-sm font-semibold">Depósitos por Banco (manual)</div>
+          <div className="text-xs text-[#131e29]/60">
+            {bankDepositsLoading ? 'Cargando...' : `${bankDeposits.length}`}
+          </div>
+        </div>
+
+        {bankDepositsLoading ? (
+          <div className="mt-3 text-sm text-[#131e29]/60">Cargando...</div>
+        ) : bankDeposits.length ? (
+          <div className="mt-3 space-y-3">
+            {bankDeposits.slice(0, 50).map((r) => (
+              <div key={r.id} className="rounded-xl border border-black/10 bg-white p-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="text-sm font-semibold text-[#131e29]">{Number(r.amount ?? 0).toFixed(2)} USDT</div>
+                    <div className="mt-1 text-[11px] text-[#131e29]/60 font-mono break-all">{String(r.id)}</div>
+                    <div className="mt-1 text-xs text-[#131e29]/70">user: <span className="font-mono break-all">{String(r.user_id || '—')}</span></div>
+                    <div className="mt-1 text-xs text-[#131e29]/70">estado: {String(r.status || '—')}</div>
+                  </div>
+                  <div className="shrink-0 flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleApproveBankDeposit(r.id)}
+                      disabled={Boolean(bankActionId) || String(r.status || '').toLowerCase() !== 'pending'}
+                      className="rounded-xl bg-doja-cyan/20 hover:bg-doja-cyan/30 border border-doja-cyan/40 px-3 py-2 text-xs font-semibold text-doja-cyan transition disabled:opacity-50"
+                    >
+                      {bankActionId === r.id ? 'Procesando...' : 'Aprobar'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleRejectBankDeposit(r.id)}
+                      disabled={Boolean(bankActionId) || String(r.status || '').toLowerCase() !== 'pending'}
+                      className="rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 px-3 py-2 text-xs font-semibold text-red-500 transition disabled:opacity-50"
+                    >
+                      Rechazar
+                    </button>
+                  </div>
+                </div>
+
+                {r.receipt_url ? (
+                  <a href={String(r.receipt_url)} target="_blank" rel="noreferrer">
+                    <img
+                      src={String(r.receipt_url)}
+                      alt="Comprobante"
+                      className="mt-3 w-full max-h-[320px] object-contain rounded-xl border border-black/10"
+                    />
+                  </a>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="mt-3 text-sm text-[#131e29]/60">Sin solicitudes.</div>
+        )}
+      </div>
+
+      <div className="mt-4 grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="rounded-2xl border border-black/10 bg-white p-4 md:col-start-2 md:col-span-2">
+          <div className="text-xs text-[#131e29]/60">Ganancias (reseñas + referidos)</div>
+          <div className="mt-2 text-2xl font-bold text-[#131e29]">{Number(summary?.earnings_total ?? 0).toFixed(2)} USDT</div>
         </div>
       </div>
 

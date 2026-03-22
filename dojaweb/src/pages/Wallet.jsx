@@ -2,10 +2,13 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Copy, QrCode, RefreshCw, Send, Wallet as WalletIcon } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth.js';
+import { supabase } from '../supabaseClient';
 import {
   createDepositRequest,
+  createBankDeposit,
   createVipIntent,
   getCuentaInfo,
+  getMyBankDeposits,
   getVipCurrent,
   resetWithdrawPin,
   setWithdrawPin,
@@ -30,6 +33,14 @@ const WalletPage = () => {
   const [depositLoading, setDepositLoading] = useState(false);
   const [deposit, setDeposit] = useState(null);
   const [confirmDepositLoading, setConfirmDepositLoading] = useState(false);
+
+  const [rechargeMethod, setRechargeMethod] = useState('crypto');
+
+  const [bankAmount, setBankAmount] = useState('');
+  const [bankReceiptFile, setBankReceiptFile] = useState(null);
+  const [bankSubmitting, setBankSubmitting] = useState(false);
+  const [myBankDepositsLoading, setMyBankDepositsLoading] = useState(false);
+  const [myBankDeposits, setMyBankDeposits] = useState([]);
 
   const [vipActive, setVipActive] = useState(false);
   const [vipLoading, setVipLoading] = useState(false);
@@ -126,6 +137,125 @@ const WalletPage = () => {
       setHistoryLoading(false);
     }
   }, [showToast]);
+
+  const bankAccounts = useMemo(
+    () => [
+      {
+        title: 'Cuenta 1',
+        bank: '—',
+        holder: '—',
+        account: '—',
+        type: '—',
+      },
+      {
+        title: 'Cuenta 2',
+        bank: '—',
+        holder: '—',
+        account: '—',
+        type: '—',
+      },
+      {
+        title: 'Cuenta 3',
+        bank: '—',
+        holder: '—',
+        account: '—',
+        type: '—',
+      },
+    ],
+    [],
+  );
+
+  const loadMyBankDeposits = useCallback(async () => {
+    setMyBankDepositsLoading(true);
+    try {
+      const resp = await getMyBankDeposits();
+      setMyBankDeposits(Array.isArray(resp?.items) ? resp.items : []);
+    } catch {
+      setMyBankDeposits([]);
+    } finally {
+      setMyBankDepositsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadMyBankDeposits();
+  }, [loadMyBankDeposits]);
+
+  const buildReceiptPublicPreview = useCallback(async (path) => {
+    const bucket = 'bank-receipts';
+    const clean = String(path || '').trim();
+    if (!clean) return null;
+    try {
+      const { data } = await supabase.storage.from(bucket).createSignedUrl(clean, 60 * 60);
+      return data?.signedUrl ?? null;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  const [bankReceiptPreviewUrl, setBankReceiptPreviewUrl] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    if (!bankReceiptFile) {
+      setBankReceiptPreviewUrl(null);
+      return () => {
+        alive = false;
+      };
+    }
+    try {
+      const url = URL.createObjectURL(bankReceiptFile);
+      setBankReceiptPreviewUrl(url);
+      return () => {
+        alive = false;
+        try {
+          if (alive) return;
+          URL.revokeObjectURL(url);
+        } catch {
+          // ignore
+        }
+      };
+    } catch {
+      setBankReceiptPreviewUrl(null);
+    }
+    return () => {
+      alive = false;
+    };
+  }, [bankReceiptFile]);
+
+  const handleSubmitBankDeposit = async () => {
+    const amount = Number(bankAmount);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      showToast('error', 'Monto inválido');
+      return;
+    }
+    if (!bankReceiptFile) {
+      showToast('error', 'Debes subir el comprobante');
+      return;
+    }
+
+    setBankSubmitting(true);
+    try {
+      const bucket = 'bank-receipts';
+      const ext = String(bankReceiptFile.name || '').split('.').pop() || 'jpg';
+      const safeExt = ext.replace(/[^a-z0-9]/gi, '').slice(0, 8) || 'jpg';
+      const path = `${String(user?.id || 'anonymous')}/${Date.now()}.${safeExt}`;
+
+      const { error: uploadErr } = await supabase.storage
+        .from(bucket)
+        .upload(path, bankReceiptFile, { upsert: false, contentType: bankReceiptFile.type || undefined });
+      if (uploadErr) throw uploadErr;
+
+      await createBankDeposit({ amount, receipt_path: path });
+      showToast('success', 'Solicitud enviada. Espera aprobación.');
+      setBankAmount('');
+      setBankReceiptFile(null);
+      await loadMyBankDeposits();
+    } catch (e) {
+      showToast('error', e?.message || 'No se pudo enviar la solicitud');
+    } finally {
+      setBankSubmitting(false);
+    }
+  };
 
   useEffect(() => {
     let alive = true;
@@ -554,6 +684,128 @@ const WalletPage = () => {
           </div>
         )}
 
+        <div className="mt-4 rounded-2xl border border-black/10 bg-white p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div className="text-[13px] font-semibold text-[#131e29]">Recargar</div>
+            <div className="inline-flex rounded-xl border border-black/10 bg-white overflow-hidden">
+              <button
+                type="button"
+                onClick={() => setRechargeMethod('crypto')}
+                className={
+                  rechargeMethod === 'crypto'
+                    ? 'px-3 py-2 text-[12px] font-semibold bg-black/5 text-[#131e29]'
+                    : 'px-3 py-2 text-[12px] font-semibold text-[#131e29]/70 hover:text-[#131e29]'
+                }
+              >
+                Cripto
+              </button>
+              <button
+                type="button"
+                onClick={() => setRechargeMethod('bank')}
+                className={
+                  rechargeMethod === 'bank'
+                    ? 'px-3 py-2 text-[12px] font-semibold bg-black/5 text-[#131e29]'
+                    : 'px-3 py-2 text-[12px] font-semibold text-[#131e29]/70 hover:text-[#131e29]'
+                }
+              >
+                Banco
+              </button>
+            </div>
+          </div>
+
+          {rechargeMethod === 'bank' ? (
+            <div className="mt-3">
+              <div className="text-[12px] text-[#131e29]/70">
+                Realiza la transferencia a una de las siguientes cuentas y sube el comprobante.
+              </div>
+
+              <div className="mt-3 grid grid-cols-1 gap-3">
+                {bankAccounts.map((acc, idx) => (
+                  <div key={idx} className="rounded-xl border border-black/10 bg-white p-3">
+                    <div className="text-sm font-semibold text-[#131e29]">{acc.title}</div>
+                    <div className="mt-2 text-[12px] text-[#131e29]/70">Banco: {acc.bank}</div>
+                    <div className="mt-1 text-[12px] text-[#131e29]/70">Titular: {acc.holder}</div>
+                    <div className="mt-1 text-[12px] text-[#131e29]/70">Tipo: {acc.type}</div>
+                    <div className="mt-1 flex items-center justify-between gap-2">
+                      <div className="text-[12px] text-[#131e29]/70 font-mono break-all">{acc.account}</div>
+                      <button
+                        type="button"
+                        onClick={() => handleCopy(acc.account)}
+                        className="shrink-0 rounded-lg border border-black/10 bg-white px-2 py-2 hover:bg-black/5 transition"
+                        aria-label="Copiar cuenta"
+                      >
+                        <Copy className="w-4 h-4 text-[#131e29]/70" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-4 grid grid-cols-1 gap-3">
+                <div>
+                  <div className="text-[12px] text-[#131e29]/70 mb-2">Monto (USDT)</div>
+                  <input
+                    value={bankAmount}
+                    onChange={(e) => setBankAmount(e.target.value)}
+                    placeholder="10"
+                    className="w-full rounded-xl bg-white border border-black/10 px-4 py-3 text-sm outline-none focus:border-black/20"
+                    disabled={bankSubmitting}
+                  />
+                </div>
+
+                <div>
+                  <div className="text-[12px] text-[#131e29]/70 mb-2">Comprobante (imagen)</div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0] || null;
+                      setBankReceiptFile(f);
+                    }}
+                    className="w-full text-sm"
+                    disabled={bankSubmitting}
+                  />
+                  {bankReceiptPreviewUrl ? (
+                    <img
+                      src={bankReceiptPreviewUrl}
+                      alt="Comprobante"
+                      className="mt-3 w-full max-h-[260px] object-contain rounded-xl border border-black/10"
+                    />
+                  ) : null}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleSubmitBankDeposit}
+                  disabled={bankSubmitting}
+                  className="rounded-xl bg-[#131e29] hover:opacity-90 border border-[#131e29] py-3 text-sm font-semibold text-white transition disabled:opacity-50"
+                >
+                  {bankSubmitting ? 'Enviando...' : 'Enviar comprobante'}
+                </button>
+              </div>
+
+              <div className="mt-4">
+                <div className="text-[12px] font-semibold text-[#131e29]">Mis solicitudes (Banco)</div>
+                {myBankDepositsLoading ? (
+                  <div className="mt-2 text-sm text-[#131e29]/60">Cargando...</div>
+                ) : myBankDeposits.length ? (
+                  <div className="mt-2 space-y-2">
+                    {myBankDeposits.slice(0, 10).map((row) => (
+                      <BankDepositRow key={row.id} row={row} buildReceiptPublicPreview={buildReceiptPublicPreview} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="mt-2 text-sm text-[#131e29]/60">Aún no tienes solicitudes.</div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="mt-3 text-[12px] text-[#131e29]/60">
+              Usa "Recargar" arriba para generar tu dirección cripto.
+            </div>
+          )}
+        </div>
+
         <div className="mt-4 rounded-2xl bg-white p-4">
           <div className="flex items-center justify-between">
             <div className="text-[12px] text-[#131e29]/70">Saldo interno</div>
@@ -572,7 +824,10 @@ const WalletPage = () => {
         <div className="mt-4 grid grid-cols-2 gap-3">
           <button
             type="button"
-            onClick={handleCreateDepositAddress}
+            onClick={() => {
+              setRechargeMethod('crypto');
+              handleCreateDepositAddress();
+            }}
             disabled={depositLoading}
             className="rounded-2xl bg-[#131e29] hover:opacity-90 border border-[#131e29] p-4 text-left transition disabled:opacity-50"
           >
@@ -890,6 +1145,46 @@ const WalletPage = () => {
           </div>
         </div>
       )}
+    </div>
+  );
+};
+
+const BankDepositRow = ({ row, buildReceiptPublicPreview }) => {
+  const [url, setUrl] = useState(null);
+
+  useEffect(() => {
+    let alive = true;
+    const path = String(row?.receipt_path || '').trim();
+    if (!path) {
+      const timer = setTimeout(() => {
+        if (alive) setUrl(null);
+      }, 0);
+      return () => {
+        alive = false;
+        clearTimeout(timer);
+      };
+    }
+    buildReceiptPublicPreview(path).then((u) => {
+      if (!alive) return;
+      setUrl(u || null);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [buildReceiptPublicPreview, row?.receipt_path]);
+
+  return (
+    <div className="rounded-xl border border-black/10 bg-white p-3">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="text-sm text-[#131e29] font-semibold">{Number(row?.amount ?? 0).toFixed(2)} USDT</div>
+          <div className="mt-1 text-[11px] text-[#131e29]/60 font-mono break-all">{String(row?.id || '')}</div>
+          <div className="mt-1 text-[12px] text-[#131e29]/70">estado: {String(row?.status || '—')}</div>
+        </div>
+      </div>
+      {url ? (
+        <img src={url} alt="Comprobante" className="mt-3 w-full max-h-[220px] object-contain rounded-xl border border-black/10" />
+      ) : null}
     </div>
   );
 };
