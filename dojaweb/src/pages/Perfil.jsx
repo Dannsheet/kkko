@@ -709,7 +709,7 @@ const Perfil = () => {
         <button
           type="button"
           className="w-full flex items-center justify-between px-4 py-4 hover:bg-black/5 transition disabled:opacity-50"
-          onClick={handleCreateDepositAddress}
+          onClick={() => navigate('/wallet')}
           disabled={depositLoading}
         >
           <div className="flex items-center gap-3">

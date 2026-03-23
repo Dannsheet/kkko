@@ -852,15 +852,7 @@ const WalletPage = () => {
           </button>
         </div>
 
-        <button
-          type="button"
-          onClick={openWithdrawSupportTelegram}
-          className="mt-3 w-full rounded-2xl bg-white hover:bg-black/5 p-4 text-left transition"
-        >
-          <div className="text-[13px] font-semibold text-[#131e29]">Problema al retirar</div>
-          <div className="mt-1 text-[12px] text-[#131e29]/70">Hablar con soporte en Telegram</div>
-        </button>
-
+        
         {!isCuentaActiva ? (
           <div className="mt-3 text-[11px] text-red-400">
             Debes tener un plan activo para poder retirar.

@@ -14,6 +14,7 @@ import Tutorial from './pages/Tutorial';
 import ResetPassword from './pages/ResetPassword';
 import NotFound from './pages/NotFound';
 import AdminRoute from './routes/AdminRoute';
+import Wallet from './pages/Wallet';
 
 const ScrollRestore = () => {
   const location = useLocation();
@@ -49,7 +50,7 @@ function App() {
               <Route path="/invitar" element={<Invitar />} />
               <Route path="/perfil" element={<Perfil />} />
             </Route>
-            <Route path="/wallet" element={<Navigate to="/perfil" replace />} />
+            <Route path="/wallet" element={<Wallet />} />
             <Route path="/retirar" element={<Withdraw />} />
             <Route path="/tutorial" element={<Tutorial />} />
           </Route>
