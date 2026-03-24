@@ -13,6 +13,8 @@ import {
   getVipCurrent,
   resetWithdrawPin,
   setWithdrawPin,
+  withdrawBankCreate,
+  withdrawBankValidate,
   withdrawCreate,
   withdrawValidate,
 } from '../lib/api.js';
@@ -60,7 +62,7 @@ const Perfil = () => {
   const [withdrawLoading, setWithdrawLoading] = useState(false);
   const [withdrawValidated, setWithdrawValidated] = useState(null);
   const [withdrawCreated, setWithdrawCreated] = useState(null);
-  const [withdrawForm, setWithdrawForm] = useState({ monto: '', red: 'BEP20-USDT', direccion: '', pin: '' });
+  const [withdrawForm, setWithdrawForm] = useState({ monto: '', red: 'BEP20-USDT', direccion: '', pin: '', metodo: 'cripto', holder_name: '', bank_name: '', account_type: 'ahorro', account_number: '', cedula: '' });
   const [withdrawNeedsPinSetup, setWithdrawNeedsPinSetup] = useState(false);
   const [withdrawPinFailedAttempts, setWithdrawPinFailedAttempts] = useState(0);
   const [withdrawPinResetOpen, setWithdrawPinResetOpen] = useState(false);
@@ -375,16 +377,26 @@ const Perfil = () => {
   const validateWithdrawForm = () => {
     const monto = Number(withdrawForm.monto);
     if (!Number.isFinite(monto) || monto <= 0) return 'Monto inválido';
-    if (!withdrawForm.red) return 'Debes seleccionar una red';
-    const feePercent = Number(withdrawFeePercent?.[withdrawForm.red]);
-    if (!Number.isFinite(feePercent) || feePercent <= 0) return 'Red no soportada';
-    if (monto < 3) return `El retiro mínimo es 3 USDT. Ingresa mínimo ${Number(3).toFixed(2)} USDT`;
-    const fee = Math.round(monto * feePercent * 100) / 100;
-    const neto = monto - fee;
-    if (!Number.isFinite(neto) || neto <= 0) return 'Monto inválido';
-    if (!withdrawForm.direccion.trim()) return 'Debes ingresar una dirección externa';
     if (!withdrawForm.pin.trim()) return 'Debes ingresar el PIN';
     if (monto > withdrawBalanceNumber) return 'Saldo insuficiente';
+
+    if (withdrawForm.metodo === 'cripto') {
+      if (!withdrawForm.red) return 'Debes seleccionar una red';
+      const feePercent = Number(withdrawFeePercent?.[withdrawForm.red]);
+      if (!Number.isFinite(feePercent) || feePercent <= 0) return 'Red no soportada';
+      if (monto < 3) return `El retiro mínimo es 3 USDT. Ingresa mínimo ${Number(3).toFixed(2)} USDT`;
+      const fee = Math.round(monto * feePercent * 100) / 100;
+      const neto = monto - fee;
+      if (!Number.isFinite(neto) || neto <= 0) return 'Monto inválido';
+      if (!withdrawForm.direccion.trim()) return 'Debes ingresar una dirección externa';
+    } else if (withdrawForm.metodo === 'banco') {
+      if (monto < 3) return `El retiro mínimo es 3 USDT. Ingresa mínimo ${Number(3).toFixed(2)} USDT`;
+      if (!withdrawForm.holder_name.trim()) return 'Debes ingresar el nombre del titular';
+      if (!withdrawForm.bank_name.trim()) return 'Debes ingresar el nombre del banco';
+      if (!withdrawForm.account_number.trim()) return 'Debes ingresar el número de cuenta';
+      if (!withdrawForm.cedula.trim()) return 'Debes ingresar la cédula de identidad';
+      if (!['ahorro', 'corriente'].includes(withdrawForm.account_type)) return 'Tipo de cuenta inválido';
+    }
     return '';
   };
 
@@ -397,7 +409,12 @@ const Perfil = () => {
     setWithdrawLoading(true);
     try {
       const monto = Number(withdrawForm.monto);
-      const data = await withdrawValidate({ monto, red: withdrawForm.red, pin: withdrawForm.pin });
+      let data;
+      if (withdrawForm.metodo === 'banco') {
+        data = await withdrawBankValidate({ monto, pin: withdrawForm.pin });
+      } else {
+        data = await withdrawValidate({ monto, red: withdrawForm.red, pin: withdrawForm.pin });
+      }
       setWithdrawValidated(data || null);
       setWithdrawNeedsPinSetup(false);
       setWithdrawPinFailedAttempts(0);
@@ -480,13 +497,26 @@ const Perfil = () => {
     setWithdrawLoading(true);
     try {
       const monto = Number(withdrawForm.monto);
-      const data = await withdrawCreate({
-        monto,
-        red: withdrawForm.red,
-        direccion: withdrawForm.direccion,
-        pin: withdrawForm.pin,
-      });
-      setWithdrawCreated(data?.retiro ?? null);
+      let data;
+      if (withdrawForm.metodo === 'banco') {
+        data = await withdrawBankCreate({
+          monto,
+          pin: withdrawForm.pin,
+          holder_name: withdrawForm.holder_name,
+          bank_name: withdrawForm.bank_name,
+          account_type: withdrawForm.account_type,
+          account_number: withdrawForm.account_number,
+          cedula: withdrawForm.cedula,
+        });
+      } else {
+        data = await withdrawCreate({
+          monto,
+          red: withdrawForm.red,
+          direccion: withdrawForm.direccion,
+          pin: withdrawForm.pin,
+        });
+      }
+      setWithdrawCreated(data?.retiro ?? data?.withdrawal ?? null);
       showToast('success', 'Retiro creado. Procesando...');
       loadCuenta();
     } catch (e) {
@@ -943,6 +973,24 @@ const Perfil = () => {
 
             <div className="mt-4 space-y-3">
               <div>
+                <label className="block text-xs text-[#131e29]/70 mb-2">Método de retiro</label>
+                <select
+                  value={withdrawForm.metodo}
+                  onChange={(e) => setWithdrawForm((p) => ({ ...p, metodo: e.target.value }))}
+                  className="w-full rounded-xl bg-white border border-black/10 px-4 py-3 text-sm outline-none focus:border-black/20"
+                >
+                  <option value="cripto">Cripto</option>
+                  <option value="banco">Banco</option>
+                </select>
+              </div>
+
+              {withdrawForm.metodo === 'banco' && (
+                <div className="text-xs text-[#131e29]/50 bg-gray-50 p-3 rounded-lg">
+                  Tus datos bancarios están protegidos y se utilizan únicamente para procesar tu retiro. No compartimos tu información con terceros.
+                </div>
+              )}
+
+              <div>
                 <label className="block text-xs text-[#131e29]/70 mb-2">Monto (total)</label>
                 <input
                   value={withdrawForm.monto}
@@ -952,27 +1000,85 @@ const Perfil = () => {
                 />
               </div>
 
-              <div>
-                <label className="block text-xs text-[#131e29]/70 mb-2">Red</label>
-                <select
-                  value={withdrawForm.red}
-                  onChange={(e) => setWithdrawForm((p) => ({ ...p, red: e.target.value }))}
-                  className="w-full rounded-xl bg-white border border-black/10 px-4 py-3 text-sm outline-none focus:border-black/20"
-                  disabled
-                >
-                  <option value="BEP20-USDT">BEP20-USDT</option>
-                </select>
-              </div>
+              {withdrawForm.metodo === 'cripto' ? (
+                <>
+                  <div>
+                    <label className="block text-xs text-[#131e29]/70 mb-2">Red</label>
+                    <select
+                      value={withdrawForm.red}
+                      onChange={(e) => setWithdrawForm((p) => ({ ...p, red: e.target.value }))}
+                      className="w-full rounded-xl bg-white border border-black/10 px-4 py-3 text-sm outline-none focus:border-black/20"
+                      disabled
+                    >
+                      <option value="BEP20-USDT">BEP20-USDT</option>
+                    </select>
+                  </div>
 
-              <div>
-                <label className="block text-xs text-[#131e29]/70 mb-2">Dirección externa</label>
-                <input
-                  value={withdrawForm.direccion}
-                  onChange={(e) => setWithdrawForm((p) => ({ ...p, direccion: e.target.value }))}
-                  placeholder="0x... / T..."
-                  className="w-full rounded-xl bg-white border border-black/10 px-4 py-3 text-sm outline-none focus:border-black/20"
-                />
-              </div>
+                  <div>
+                    <label className="block text-xs text-[#131e29]/70 mb-2">Dirección externa</label>
+                    <input
+                      value={withdrawForm.direccion}
+                      onChange={(e) => setWithdrawForm((p) => ({ ...p, direccion: e.target.value }))}
+                      placeholder="0x... / T..."
+                      className="w-full rounded-xl bg-white border border-black/10 px-4 py-3 text-sm outline-none focus:border-black/20"
+                    />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div>
+                    <label className="block text-xs text-[#131e29]/70 mb-2">Nombre del titular</label>
+                    <input
+                      value={withdrawForm.holder_name}
+                      onChange={(e) => setWithdrawForm((p) => ({ ...p, holder_name: e.target.value }))}
+                      placeholder="Juan Pérez"
+                      className="w-full rounded-xl bg-white border border-black/10 px-4 py-3 text-sm outline-none focus:border-black/20"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs text-[#131e29]/70 mb-2">Nombre del banco</label>
+                    <input
+                      value={withdrawForm.bank_name}
+                      onChange={(e) => setWithdrawForm((p) => ({ ...p, bank_name: e.target.value }))}
+                      placeholder="Banco de Ejemplo"
+                      className="w-full rounded-xl bg-white border border-black/10 px-4 py-3 text-sm outline-none focus:border-black/20"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs text-[#131e29]/70 mb-2">Tipo de cuenta</label>
+                    <select
+                      value={withdrawForm.account_type}
+                      onChange={(e) => setWithdrawForm((p) => ({ ...p, account_type: e.target.value }))}
+                      className="w-full rounded-xl bg-white border border-black/10 px-4 py-3 text-sm outline-none focus:border-black/20"
+                    >
+                      <option value="ahorro">Ahorro</option>
+                      <option value="corriente">Corriente</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs text-[#131e29]/70 mb-2">Número de cuenta</label>
+                    <input
+                      value={withdrawForm.account_number}
+                      onChange={(e) => setWithdrawForm((p) => ({ ...p, account_number: e.target.value }))}
+                      placeholder="1234567890"
+                      className="w-full rounded-xl bg-white border border-black/10 px-4 py-3 text-sm outline-none focus:border-black/20"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs text-[#131e29]/70 mb-2">Cédula de identidad</label>
+                    <input
+                      value={withdrawForm.cedula}
+                      onChange={(e) => setWithdrawForm((p) => ({ ...p, cedula: e.target.value }))}
+                      placeholder="1234567890"
+                      className="w-full rounded-xl bg-white border border-black/10 px-4 py-3 text-sm outline-none focus:border-black/20"
+                    />
+                  </div>
+                </>
+              )}
 
               <div>
                 <label className="block text-xs text-[#131e29]/70 mb-2">PIN</label>

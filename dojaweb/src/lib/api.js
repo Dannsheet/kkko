@@ -165,11 +165,25 @@ export const withdrawValidate = async (body) => {
   return apiFetch('/api/withdraw/validate', { method: 'POST', body });
 };
 
+export const withdrawBankValidate = async (body) => {
+  const { data } = await supabase.auth.getSession();
+  const userId = data?.session?.user?.id;
+  if (!userId) throw new Error('Debes iniciar sesión');
+  return apiFetch('/api/withdraw/bank/validate', { method: 'POST', body });
+};
+
 export const withdrawCreate = async (body) => {
   const { data } = await supabase.auth.getSession();
   const userId = data?.session?.user?.id;
   if (!userId) throw new Error('Debes iniciar sesión');
   return apiFetch('/api/withdraw/create', { method: 'POST', body });
+};
+
+export const withdrawBankCreate = async (body) => {
+  const { data } = await supabase.auth.getSession();
+  const userId = data?.session?.user?.id;
+  if (!userId) throw new Error('Debes iniciar sesión');
+  return apiFetch('/api/withdraw/bank/create', { method: 'POST', body });
 };
 
 export const setWithdrawPin = async (pin) => {
