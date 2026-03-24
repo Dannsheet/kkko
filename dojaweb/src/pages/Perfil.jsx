@@ -948,7 +948,7 @@ const Perfil = () => {
       ) : null}
 
       {withdrawOpen && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center px-4">
+        <div className="fixed inset-0 z-[70] flex items-start justify-center pt-8 px-4 overflow-y-auto">
           <button
             type="button"
             className="absolute inset-0 bg-black/40"
@@ -956,7 +956,7 @@ const Perfil = () => {
             aria-label="Cerrar"
           />
 
-          <div className="relative w-full max-w-sm rounded-2xl border border-black/10 bg-white p-5 text-[#131e29]">
+          <div className="relative w-full max-w-sm rounded-2xl border border-black/10 bg-white p-5 text-[#131e29] my-8">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <div className="text-lg font-semibold">Retirar USDT</div>
