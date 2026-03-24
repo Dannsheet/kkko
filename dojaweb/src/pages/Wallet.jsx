@@ -1,6 +1,13 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Copy, QrCode, RefreshCw, Send, Wallet as WalletIcon } from 'lucide-react';
+import {
+  ArrowLeft,
+  Copy,
+  RefreshCw,
+  QrCode,
+  Send,
+  Wallet as WalletIcon,
+} from 'lucide-react';
 import { useAuth } from '../hooks/useAuth.js';
 import { supabase } from '../supabaseClient';
 import {
@@ -142,28 +149,40 @@ const WalletPage = () => {
     () => [
       {
         title: 'Cuenta 1',
-        bank: '—',
-        holder: '—',
-        account: '—',
-        type: '—',
+        bank: 'Pichincha (Ahorro)',
+        holder: 'Irene Isabel Zambrano Cedeño',
+        cedula: '1350439988',
+        account: '2211995310',
+        type: 'Ahorro',
       },
       {
         title: 'Cuenta 2',
-        bank: '—',
-        holder: '—',
-        account: '—',
-        type: '—',
+        bank: 'Pichincha (Ahorro)',
+        holder: 'Omar Medin Lombeida',
+        cedula: '1723049019',
+        account: '2200228336',
+        type: 'Ahorro',
       },
       {
         title: 'Cuenta 3',
-        bank: '—',
-        holder: '—',
-        account: '—',
-        type: '—',
+        bank: 'Pichincha (Ahorro)',
+        holder: 'Katherine Isabel Briones Espinales',
+        cedula: '1350416028',
+        account: '2212697545',
+        type: 'Ahorro',
       },
     ],
     [],
   );
+
+  const [selectedBankIdx, setSelectedBankIdx] = useState(0);
+  useEffect(() => {
+    if (rechargeMethod !== 'bank') return;
+    const next = Math.floor(Math.random() * bankAccounts.length);
+    setSelectedBankIdx(next);
+  }, [bankAccounts.length, rechargeMethod]);
+
+  const selectedBankAccount = bankAccounts[selectedBankIdx] || bankAccounts[0];
 
   const loadMyBankDeposits = useCallback(async () => {
     setMyBankDepositsLoading(true);
@@ -716,29 +735,28 @@ const WalletPage = () => {
           {rechargeMethod === 'bank' ? (
             <div className="mt-3">
               <div className="text-[12px] text-[#131e29]/70">
-                Realiza la transferencia a una de las siguientes cuentas y sube el comprobante.
+                Realiza la transferencia a la siguiente cuenta y sube el comprobante.
               </div>
 
               <div className="mt-3 grid grid-cols-1 gap-3">
-                {bankAccounts.map((acc, idx) => (
-                  <div key={idx} className="rounded-xl border border-black/10 bg-white p-3">
-                    <div className="text-sm font-semibold text-[#131e29]">{acc.title}</div>
-                    <div className="mt-2 text-[12px] text-[#131e29]/70">Banco: {acc.bank}</div>
-                    <div className="mt-1 text-[12px] text-[#131e29]/70">Titular: {acc.holder}</div>
-                    <div className="mt-1 text-[12px] text-[#131e29]/70">Tipo: {acc.type}</div>
-                    <div className="mt-1 flex items-center justify-between gap-2">
-                      <div className="text-[12px] text-[#131e29]/70 font-mono break-all">{acc.account}</div>
-                      <button
-                        type="button"
-                        onClick={() => handleCopy(acc.account)}
-                        className="shrink-0 rounded-lg border border-black/10 bg-white px-2 py-2 hover:bg-black/5 transition"
-                        aria-label="Copiar cuenta"
-                      >
-                        <Copy className="w-4 h-4 text-[#131e29]/70" />
-                      </button>
-                    </div>
+                <div className="rounded-xl border border-black/10 bg-white p-3">
+                  <div className="mt-2 text-[12px] text-[#131e29]/70">Banco: {selectedBankAccount.bank}</div>
+                  <div className="mt-1 text-[12px] text-[#131e29]/70">Nombre: {selectedBankAccount.holder}</div>
+                  <div className="mt-1 text-[12px] text-[#131e29]/70">Cédula: {selectedBankAccount.cedula}</div>
+                  <div className="mt-1 text-[12px] text-[#131e29]/70">Tipo: {selectedBankAccount.type}</div>
+
+                  <div className="mt-2 flex items-center justify-between gap-2">
+                    <div className="text-[12px] text-[#131e29]/70 font-mono break-all">{selectedBankAccount.account}</div>
+                    <button
+                      type="button"
+                      onClick={() => handleCopy(selectedBankAccount.account)}
+                      className="shrink-0 rounded-lg border border-black/10 bg-white px-2 py-2 hover:bg-black/5 transition"
+                      aria-label="Copiar cuenta"
+                    >
+                      <Copy className="w-4 h-4 text-[#131e29]/70" />
+                    </button>
                   </div>
-                ))}
+                </div>
               </div>
 
               <div className="mt-4 grid grid-cols-1 gap-3">
