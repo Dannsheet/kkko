@@ -199,10 +199,6 @@ const Perfil = () => {
 
   useEffect(() => {
     if (!shouldOpenWithdrawFromNav) return;
-    if (!isCuentaActiva) {
-      showToast('error', 'Debes tener un plan activo para retirar');
-      return;
-    }
     setWithdrawOpen(true);
     setWithdrawValidated(null);
     setWithdrawCreated(null);
@@ -392,7 +388,6 @@ const Perfil = () => {
     if (!Number.isFinite(neto) || neto <= 0) return 'Monto inválido';
     if (!withdrawForm.direccion.trim()) return 'Debes ingresar una dirección externa';
     if (!withdrawForm.pin.trim()) return 'Debes ingresar el PIN';
-    if (!isCuentaActiva) return 'Tu cuenta no está activa';
     if (monto > withdrawBalanceNumber) return 'Saldo insuficiente';
     return '';
   };

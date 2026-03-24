@@ -348,10 +348,6 @@ const WalletPage = () => {
   );
 
   const openWithdraw = () => {
-    if (!isCuentaActiva) {
-      showToast('error', 'Debes tener un plan activo para retirar');
-      return;
-    }
     setWithdrawOpen(true);
     setWithdrawValidated(null);
     setWithdrawCreated(null);
@@ -466,7 +462,6 @@ const WalletPage = () => {
 
     if (!withdrawForm.direccion.trim()) return 'Debes ingresar una dirección externa';
     if (!withdrawForm.pin.trim()) return 'Debes ingresar el PIN';
-    if (!isCuentaActiva) return 'Tu cuenta no está activa';
     if (monto > withdrawBalanceNumber) return 'Saldo insuficiente';
     return '';
   };
@@ -859,7 +854,7 @@ const WalletPage = () => {
           <button
             type="button"
             onClick={openWithdraw}
-            disabled={!isCuentaActiva || vipLoading}
+            disabled={vipLoading}
             className="rounded-2xl bg-white hover:bg-black/5 p-4 text-left transition disabled:opacity-50"
           >
             <div className="flex items-center gap-2 text-[#131e29] font-semibold">
@@ -1122,7 +1117,7 @@ const WalletPage = () => {
               <button
                 type="button"
                 onClick={handleWithdrawValidate}
-                disabled={withdrawLoading || insufficientByForm || !isCuentaActiva}
+                disabled={withdrawLoading || insufficientByForm}
                 className="rounded-xl bg-white hover:bg-black/5 border border-black/10 py-3 text-sm font-semibold transition disabled:opacity-50"
               >
                 {withdrawLoading ? 'Validando...' : 'Validar'}
