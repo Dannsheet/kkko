@@ -100,7 +100,7 @@ const Perfil = () => {
     setToast({ type, message });
   }, []);
 
-  const openWithdrawSupportTelegram = useCallback(() => {
+  const _openWithdrawSupportTelegram = useCallback(() => {
     const email = String(user?.email || '').trim();
     const message = `Hola soy ${email || ''} tengo problemas con mi retiro`;
     const url = `https://t.me/dajoweb?text=${encodeURIComponent(message)}`;
@@ -241,10 +241,6 @@ const Perfil = () => {
   }, [deposit]);
 
   const openWithdraw = () => {
-    if (!isCuentaActiva) {
-      showToast('error', 'Debes tener un plan activo para retirar');
-      return;
-    }
     setWithdrawOpen(true);
     setWithdrawValidated(null);
     setWithdrawCreated(null);
@@ -280,7 +276,7 @@ const Perfil = () => {
     }
   };
 
-  const handleCreateDepositAddress = async () => {
+  const _handleCreateDepositAddress = async () => {
     setDepositLoading(true);
     try {
       lastBalanceRef.current = Number(saldoInterno || 0);
@@ -678,13 +674,9 @@ const Perfil = () => {
 
       <div className="mt-0 bg-white overflow-hidden border-b border-black/10">
         <div className="px-4 py-4">
-          {!isCuentaActiva ? (
-            <div className="mt-2 text-[11px] text-red-400">Debes tener un plan activo para poder retirar.</div>
-          ) : (
-            <div className="mt-2 text-[11px] text-[#131e29]/70">
-              El retiro mínimo es de 3 USDT. Se descontará comisión del 10% por retiro
-            </div>
-          )}
+          <div className="mt-2 text-[11px] text-[#131e29]/70">
+            El retiro mínimo es de 3 USDT. Se descontará comisión del 10% por retiro
+          </div>
         </div>
 
         <div className="h-px bg-black/10" />
@@ -719,7 +711,6 @@ const Perfil = () => {
           type="button"
           className="w-full flex items-center justify-between px-4 py-4 hover:bg-black/5 transition disabled:opacity-50"
           onClick={openWithdraw}
-          disabled={!isCuentaActiva}
         >
           <div className="flex items-center gap-3">
             <ArrowLeftRight className="w-5 h-5 text-[#131e29]/70" />
@@ -1096,7 +1087,7 @@ const Perfil = () => {
               <button
                 type="button"
                 onClick={handleWithdrawValidate}
-                disabled={withdrawLoading || !isCuentaActiva}
+                disabled={withdrawLoading}
                 className="rounded-xl bg-white hover:bg-black/5 border border-black/10 py-3 text-sm font-semibold transition disabled:opacity-50"
               >
                 {withdrawLoading ? 'Validando...' : 'Validar'}

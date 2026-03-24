@@ -865,18 +865,9 @@ const WalletPage = () => {
           </button>
         </div>
 
-        
-        {!isCuentaActiva ? (
-          <div className="mt-3 text-[11px] text-red-400">
-            Debes tener un plan activo para poder retirar.
-          </div>
-        ) : null}
-
-        {isCuentaActiva ? (
-          <div className="mt-3 text-[11px] text-[#131e29]/70">
-            El retiro mínimo es de 3 USDT. Se descontará comisión del 10% por retiro
-          </div>
-        ) : null}
+        <div className="mt-3 text-[11px] text-[#131e29]/70">
+          El retiro mínimo es de 3 USDT. Se descontará comisión del 10% por retiro
+        </div>
 
         {deposit && (
           <div className="mt-4 rounded-2xl bg-white border border-black/10 p-4">
