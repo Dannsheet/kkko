@@ -866,45 +866,45 @@ const WalletPage = () => {
         ) : null}
 
         {deposit && (
-          <div className="mt-4 rounded-2xl bg-white/5 border border-white/10 p-4">
-            <div className="flex items-center gap-2 text-[13px] font-semibold">
-              <WalletIcon className="w-5 h-5 text-doja-cyan" />
+          <div className="mt-4 rounded-2xl bg-white border border-black/10 p-4">
+            <div className="flex items-center gap-2 text-[13px] font-semibold text-[#131e29]">
+              <WalletIcon className="w-5 h-5 text-[#131e29]/70" />
               Dirección de depósito
             </div>
             <div className="mt-3 flex items-start gap-4">
               <div className="min-w-0">
-                <div className="text-[12px] text-white/60">Red</div>
+                <div className="text-[12px] text-[#131e29]/60">Red</div>
                 <div className="mt-1 flex items-center gap-2">
-                  <div className="text-[12px] text-white/90 font-mono break-all">{depositNetwork || '—'}</div>
+                  <div className="text-[12px] text-[#131e29]/90 font-mono break-all">{depositNetwork || '—'}</div>
                   {depositNetwork ? (
                     <button
                       type="button"
                       onClick={() => handleCopy(depositNetwork)}
-                      className="shrink-0 rounded-lg border border-white/10 bg-white/5 p-2 hover:bg-white/10 transition"
+                      className="shrink-0 rounded-lg border border-black/10 bg-white p-2 hover:bg-black/5 transition"
                       aria-label="Copiar red"
                     >
-                      <Copy className="w-4 h-4 text-white/70" />
+                      <Copy className="w-4 h-4 text-[#131e29]/70" />
                     </button>
                   ) : null}
                 </div>
-                <div className="mt-2 text-[12px] text-white/60">Dirección</div>
+                <div className="mt-2 text-[12px] text-[#131e29]/60">Dirección</div>
                 <div className="mt-1 flex items-center gap-2">
-                  <div className="text-[12px] text-white/90 font-mono break-all">{depositAddress || '—'}</div>
+                  <div className="text-[12px] text-[#131e29]/90 font-mono break-all">{depositAddress || '—'}</div>
                   {depositAddress ? (
                     <button
                       type="button"
                       onClick={() => handleCopy(depositAddress)}
-                      className="shrink-0 rounded-lg border border-white/10 bg-white/5 p-2 hover:bg-white/10 transition"
+                      className="shrink-0 rounded-lg border border-black/10 bg-white p-2 hover:bg-black/5 transition"
                       aria-label="Copiar dirección"
                     >
-                      <Copy className="w-4 h-4 text-white/70" />
+                      <Copy className="w-4 h-4 text-[#131e29]/70" />
                     </button>
                   ) : null}
                 </div>
                 {depositMemo ? (
                   <>
-                    <div className="mt-2 text-[12px] text-white/60">Memo</div>
-                    <div className="text-[12px] text-white/90 font-mono break-all">{depositMemo}</div>
+                    <div className="mt-2 text-[12px] text-[#131e29]/60">Memo</div>
+                    <div className="text-[12px] text-[#131e29]/90 font-mono break-all">{depositMemo}</div>
                   </>
                 ) : null}
 
@@ -916,17 +916,9 @@ const WalletPage = () => {
                 >
                   {confirmDepositLoading ? 'Confirmando...' : 'Confirmar pago'}
                 </button>
-
-                <button
-                  type="button"
-                  onClick={openWithdrawSupportTelegram}
-                  className="mt-3 w-full rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 py-3 text-sm font-semibold text-white/80 transition"
-                >
-                  Problema al retirar
-                </button>
               </div>
             </div>
-            <div className="mt-3 text-[11px] text-white/60">
+            <div className="mt-3 text-[11px] text-[#131e29]/60">
               Envía únicamente USDT por la red indicada. Si envías otra moneda o red, podrías perder los fondos.
             </div>
           </div>
@@ -1126,14 +1118,6 @@ const WalletPage = () => {
                 {withdrawLoading ? 'Creando...' : 'Confirmar'}
               </button>
             </div>
-
-            <button
-              type="button"
-              onClick={openWithdrawSupportTelegram}
-              className="mt-3 w-full rounded-xl bg-white hover:bg-black/5 border border-black/10 py-3 text-sm font-semibold text-[#131e29]/80 transition"
-            >
-              Problema al retirar
-            </button>
           </div>
         </div>
       )}
