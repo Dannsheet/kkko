@@ -6,6 +6,7 @@ import {
   createDepositRequest,
   getCuentaInfo,
   getMe,
+  getMyBankDeposits,
   getMyDeposits,
   getMyBankWithdrawalReceiptUrl,
   getMyBankWithdrawals,
@@ -31,6 +32,7 @@ const Perfil = () => {
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
   const [recargaAcumulada, setRecargaAcumulada] = useState(0);
+  const [recargaBancoAcumulada, setRecargaBancoAcumulada] = useState(0);
   const [ganadoReferidos, setGanadoReferidos] = useState(0);
   const [ganadoVideos, setGanadoVideos] = useState(0);
   const [ganadoResenas, setGanadoResenas] = useState(0);
@@ -173,6 +175,32 @@ const Perfil = () => {
   useEffect(() => {
     loadCuenta();
   }, [loadCuenta]);
+
+  useEffect(() => {
+    let alive = true;
+    const run = async () => {
+      if (!user?.id) return;
+      try {
+        const resp = await getMyBankDeposits();
+        const items = Array.isArray(resp?.items) ? resp.items : [];
+        const total = items.reduce((acc, r) => {
+          const status = String(r?.status || '').toLowerCase();
+          if (status !== 'approved') return acc;
+          const amount = Number(r?.amount);
+          return acc + (Number.isFinite(amount) ? amount : 0);
+        }, 0);
+        if (!alive) return;
+        setRecargaBancoAcumulada(Number.isFinite(total) ? total : 0);
+      } catch {
+        if (!alive) return;
+        setRecargaBancoAcumulada(0);
+      }
+    };
+    run();
+    return () => {
+      alive = false;
+    };
+  }, [user?.id]);
 
   useEffect(() => {
     lastBalanceRef.current = Number(saldoInterno || 0);
@@ -633,6 +661,7 @@ const Perfil = () => {
 
       return [
         { label: 'Valor Recargado (USDT)', value: Number(recargaAcumulada || 0).toFixed(2) },
+        { label: 'Recargado por banco (USDT)', value: Number(recargaBancoAcumulada || 0).toFixed(2) },
         { label: 'Ingresos totales', value: Number(gananciasTotales || 0).toFixed(2) },
         { label: 'Valor actual', value: Number(valorActual || 0).toFixed(2) },
         {
@@ -644,7 +673,7 @@ const Perfil = () => {
         { label: 'Tamaño total del equipo', value: String(teamSize || 0) },
       ];
     },
-    [ganadoReferidos, ganadoResenas, ganadoVideos, recargaAcumulada, retiroAcumulativo, teamSize, totalComisiones],
+    [ganadoReferidos, ganadoResenas, ganadoVideos, recargaAcumulada, recargaBancoAcumulada, retiroAcumulativo, teamSize, totalComisiones],
   );
 
   const neonCyanStyle = useMemo(
