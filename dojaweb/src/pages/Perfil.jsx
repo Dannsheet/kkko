@@ -213,10 +213,8 @@ const Perfil = () => {
         const total = items.reduce((acc, r) => {
           const status = String(r?.status || '').toLowerCase();
           if (status !== 'paid') return acc;
-          const net = Number(r?.neto);
-          const fallback = Number(r?.total);
-          const amount = Number.isFinite(net) ? net : Number.isFinite(fallback) ? fallback : 0;
-          return acc + amount;
+          const amount = Number(r?.total);
+          return acc + (Number.isFinite(amount) ? amount : 0);
         }, 0);
         if (!alive) return;
         setRetiroBancoAcumulativo(Number.isFinite(total) ? total : 0);
