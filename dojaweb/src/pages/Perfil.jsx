@@ -37,6 +37,7 @@ const Perfil = () => {
   const [ganadoVideos, setGanadoVideos] = useState(0);
   const [ganadoResenas, setGanadoResenas] = useState(0);
   const [retiroAcumulativo, setRetiroAcumulativo] = useState(0);
+  const [retiroBancoAcumulativo, setRetiroBancoAcumulativo] = useState(0);
   const [totalComisiones, setTotalComisiones] = useState(0);
   const [teamSize, setTeamSize] = useState(0);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -194,6 +195,34 @@ const Perfil = () => {
       } catch {
         if (!alive) return;
         setRecargaBancoAcumulada(0);
+      }
+    };
+    run();
+    return () => {
+      alive = false;
+    };
+  }, [user?.id]);
+
+  useEffect(() => {
+    let alive = true;
+    const run = async () => {
+      if (!user?.id) return;
+      try {
+        const list = await getMyBankWithdrawals();
+        const items = Array.isArray(list) ? list : [];
+        const total = items.reduce((acc, r) => {
+          const status = String(r?.status || '').toLowerCase();
+          if (status !== 'paid') return acc;
+          const net = Number(r?.neto);
+          const fallback = Number(r?.total);
+          const amount = Number.isFinite(net) ? net : Number.isFinite(fallback) ? fallback : 0;
+          return acc + amount;
+        }, 0);
+        if (!alive) return;
+        setRetiroBancoAcumulativo(Number.isFinite(total) ? total : 0);
+      } catch {
+        if (!alive) return;
+        setRetiroBancoAcumulativo(0);
       }
     };
     run();
@@ -655,7 +684,7 @@ const Perfil = () => {
       const gananciasTotales =
         (Number.isFinite(baseReferidos) ? baseReferidos : 0) +
         (Number.isFinite(baseResenas) ? baseResenas : Number.isFinite(baseVideos) ? baseVideos : 0);
-      const baseRetirado = Number(retiroAcumulativo || 0);
+      const baseRetirado = (Number(retiroAcumulativo || 0) || 0) + (Number(retiroBancoAcumulativo || 0) || 0);
       const valorActualRaw = (Number(gananciasTotales) || 0) - (Number(baseRetirado) || 0);
       const valorActual = Number.isFinite(valorActualRaw) ? valorActualRaw : 0;
 
@@ -669,11 +698,11 @@ const Perfil = () => {
           value: (Number.isFinite(baseResenas) ? baseResenas : Number.isFinite(baseVideos) ? baseVideos : 0).toFixed(2),
         },
         { label: 'Referidos', value: (Number.isFinite(baseTotalComisiones) ? baseTotalComisiones : 0).toFixed(2) },
-        { label: 'Valor retirado', value: Number(retiroAcumulativo || 0).toFixed(2) },
+        { label: 'Valor retirado', value: Number(baseRetirado || 0).toFixed(2) },
         { label: 'Tamaño total del equipo', value: String(teamSize || 0) },
       ];
     },
-    [ganadoReferidos, ganadoResenas, ganadoVideos, recargaAcumulada, recargaBancoAcumulada, retiroAcumulativo, teamSize, totalComisiones],
+    [ganadoReferidos, ganadoResenas, ganadoVideos, recargaAcumulada, recargaBancoAcumulada, retiroAcumulativo, retiroBancoAcumulativo, teamSize, totalComisiones],
   );
 
   const neonCyanStyle = useMemo(
