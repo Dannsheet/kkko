@@ -464,7 +464,7 @@ const WalletPage = () => {
       if (!Number.isFinite(neto) || neto <= 0) return 'Monto inválido';
       if (!withdrawForm.direccion.trim()) return 'Debes ingresar una dirección externa';
     } else if (withdrawForm.metodo === 'banco') {
-      if (monto < 3) return `El retiro mínimo es 3 USDT. Ingresa mínimo ${Number(3).toFixed(2)} USDT`;
+      if (monto < 5) return `El retiro mínimo por banco es 5 USDT. Ingresa mínimo ${Number(5).toFixed(2)} USDT`;
       if (!withdrawForm.holder_name.trim()) return 'Debes ingresar el nombre del titular';
       if (!withdrawForm.bank_name.trim()) return 'Debes ingresar el nombre del banco';
       if (!withdrawForm.account_number.trim()) return 'Debes ingresar el número de cuenta';

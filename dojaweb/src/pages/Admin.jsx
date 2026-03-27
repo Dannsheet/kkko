@@ -1,12 +1,18 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Loader2, RefreshCw, Users } from 'lucide-react';
+import { supabase } from '../supabaseClient';
 import {
   adminConfirmUserWithdrawal,
   adminGetSummary,
   adminGetBankDeposits,
   adminApproveBankDeposit,
   adminRejectBankDeposit,
+  adminGetBankDepositReceiptUrl,
+  adminGetBankWithdrawals,
+  adminGetBankWithdrawalReceiptUrl,
+  adminMarkBankWithdrawalPaid,
+  adminRejectBankWithdrawal,
   adminGetUserDetail,
   adminGetUserReferrals,
   adminGetUsers,
@@ -37,6 +43,23 @@ const Admin = () => {
   const [bankDeposits, setBankDeposits] = useState([]);
   const [bankActionId, setBankActionId] = useState(null);
 
+  const [bankReceiptOpen, setBankReceiptOpen] = useState(false);
+  const [bankReceiptLoading, setBankReceiptLoading] = useState(false);
+  const [bankReceiptUrl, setBankReceiptUrl] = useState(null);
+  const [bankReceiptRow, setBankReceiptRow] = useState(null);
+
+  const [bankWithdrawalsLoading, setBankWithdrawalsLoading] = useState(false);
+  const [bankWithdrawals, setBankWithdrawals] = useState([]);
+  const [bankWithdrawalActionId, setBankWithdrawalActionId] = useState(null);
+
+  const [bankWithdrawalReceiptOpen, setBankWithdrawalReceiptOpen] = useState(false);
+  const [bankWithdrawalReceiptLoading, setBankWithdrawalReceiptLoading] = useState(false);
+  const [bankWithdrawalReceiptUrl, setBankWithdrawalReceiptUrl] = useState(null);
+  const [bankWithdrawalReceiptRow, setBankWithdrawalReceiptRow] = useState(null);
+
+  const [bankWithdrawalUploadId, setBankWithdrawalUploadId] = useState(null);
+  const [bankWithdrawalUploadFile, setBankWithdrawalUploadFile] = useState(null);
+
   useEffect(() => {
     if (!toast) return;
     const id = window.setTimeout(() => setToast(null), 3500);
@@ -60,6 +83,18 @@ const Admin = () => {
       setBankDeposits([]);
     } finally {
       setBankDepositsLoading(false);
+    }
+  }, []);
+
+  const loadBankWithdrawals = useCallback(async () => {
+    setBankWithdrawalsLoading(true);
+    try {
+      const resp = await adminGetBankWithdrawals({ limit: 100 });
+      setBankWithdrawals(Array.isArray(resp?.items) ? resp.items : []);
+    } catch {
+      setBankWithdrawals([]);
+    } finally {
+      setBankWithdrawalsLoading(false);
     }
   }, []);
 
@@ -89,14 +124,14 @@ const Admin = () => {
   const loadAll = useCallback(async () => {
     setLoading(true);
     try {
-      await Promise.all([loadSummary(), loadUsers(), loadBankDeposits()]);
+      await Promise.all([loadSummary(), loadUsers(), loadBankDeposits(), loadBankWithdrawals()]);
     } catch (e) {
       console.error('[Admin] load error', e);
       setError(e?.message || 'No se pudo cargar el panel admin');
     } finally {
       setLoading(false);
     }
-  }, [loadSummary, loadUsers, loadBankDeposits]);
+  }, [loadSummary, loadUsers, loadBankDeposits, loadBankWithdrawals]);
 
   const handleApproveBankDeposit = async (id) => {
     if (!id) return;
@@ -123,6 +158,102 @@ const Admin = () => {
       showToast('error', e?.message || 'No se pudo rechazar');
     } finally {
       setBankActionId(null);
+    }
+  };
+
+  const closeBankReceipt = () => {
+    setBankReceiptOpen(false);
+    setBankReceiptLoading(false);
+    setBankReceiptUrl(null);
+    setBankReceiptRow(null);
+  };
+
+  const openBankReceipt = async (row) => {
+    const id = row?.id;
+    if (!id) return;
+    setBankReceiptOpen(true);
+    setBankReceiptRow(row || null);
+    setBankReceiptLoading(true);
+    setBankReceiptUrl(null);
+    try {
+      const resp = await adminGetBankDepositReceiptUrl(id);
+      setBankReceiptUrl(resp?.receipt_url ? String(resp.receipt_url) : null);
+    } catch (e) {
+      setBankReceiptUrl(null);
+      showToast('error', e?.message || 'No se pudo cargar el comprobante');
+    } finally {
+      setBankReceiptLoading(false);
+    }
+  };
+
+  const closeBankWithdrawalReceipt = () => {
+    setBankWithdrawalReceiptOpen(false);
+    setBankWithdrawalReceiptLoading(false);
+    setBankWithdrawalReceiptUrl(null);
+    setBankWithdrawalReceiptRow(null);
+  };
+
+  const openBankWithdrawalReceipt = async (row) => {
+    const id = row?.id;
+    if (!id) return;
+    setBankWithdrawalReceiptOpen(true);
+    setBankWithdrawalReceiptRow(row || null);
+    setBankWithdrawalReceiptLoading(true);
+    setBankWithdrawalReceiptUrl(null);
+    try {
+      const resp = await adminGetBankWithdrawalReceiptUrl(id);
+      setBankWithdrawalReceiptUrl(resp?.receipt_url ? String(resp.receipt_url) : null);
+    } catch (e) {
+      setBankWithdrawalReceiptUrl(null);
+      showToast('error', e?.message || 'No se pudo cargar el comprobante');
+    } finally {
+      setBankWithdrawalReceiptLoading(false);
+    }
+  };
+
+  const handleRejectBankWithdrawal = async (id) => {
+    if (!id) return;
+    setBankWithdrawalActionId(id);
+    try {
+      await adminRejectBankWithdrawal(id);
+      showToast('success', 'Retiro banco rechazado');
+      await Promise.all([loadBankWithdrawals(), loadSummary()]);
+    } catch (e) {
+      showToast('error', e?.message || 'No se pudo rechazar');
+    } finally {
+      setBankWithdrawalActionId(null);
+    }
+  };
+
+  const handleUploadBankWithdrawalReceipt = async (row) => {
+    const id = row?.id;
+    const userId = row?.user_id;
+    if (!id || !userId) return;
+    if (!bankWithdrawalUploadFile) {
+      showToast('error', 'Debes seleccionar un comprobante');
+      return;
+    }
+
+    setBankWithdrawalUploadId(id);
+    try {
+      const bucket = 'bank-withdrawals-receipts';
+      const ext = String(bankWithdrawalUploadFile.name || '').split('.').pop() || 'jpg';
+      const safeExt = ext.replace(/[^a-z0-9]/gi, '').slice(0, 8) || 'jpg';
+      const path = `${String(userId)}/${String(id)}/${Date.now()}.${safeExt}`;
+
+      const { error: uploadErr } = await supabase.storage
+        .from(bucket)
+        .upload(path, bankWithdrawalUploadFile, { upsert: false, contentType: bankWithdrawalUploadFile.type || undefined });
+      if (uploadErr) throw uploadErr;
+
+      await adminMarkBankWithdrawalPaid({ id, admin_receipt_path: path });
+      showToast('success', 'Retiro banco marcado como pagado');
+      setBankWithdrawalUploadFile(null);
+      await Promise.all([loadBankWithdrawals(), loadSummary()]);
+    } catch (e) {
+      showToast('error', e?.message || 'No se pudo subir el comprobante');
+    } finally {
+      setBankWithdrawalUploadId(null);
     }
   };
 
@@ -172,6 +303,94 @@ const Admin = () => {
 
   return (
     <div className="min-h-screen bg-white text-[#131e29] p-4">
+      {bankReceiptOpen ? (
+        <div className="fixed inset-0 z-[80] flex items-start justify-center pt-8 px-4 overflow-y-auto">
+          <button
+            type="button"
+            className="absolute inset-0 bg-black/40"
+            onClick={closeBankReceipt}
+            aria-label="Cerrar"
+          />
+          <div className="relative w-full max-w-2xl rounded-2xl border border-black/10 bg-white p-5 text-[#131e29] my-8">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="text-sm font-semibold">Comprobante de depósito</div>
+                {bankReceiptRow?.id ? (
+                  <div className="mt-1 text-[11px] text-[#131e29]/60 font-mono break-all">{String(bankReceiptRow.id)}</div>
+                ) : null}
+              </div>
+              <button
+                type="button"
+                onClick={closeBankReceipt}
+                className="rounded-xl px-3 py-2 text-xs font-semibold transition border bg-[#e9eef3] hover:bg-[#dde6ee] border-black/10 text-[#131e29]"
+              >
+                Cerrar
+              </button>
+            </div>
+
+            <div className="mt-4">
+              {bankReceiptLoading ? (
+                <div className="text-sm text-[#131e29]/60">Cargando...</div>
+              ) : bankReceiptUrl ? (
+                <a href={bankReceiptUrl} target="_blank" rel="noreferrer">
+                  <img
+                    src={bankReceiptUrl}
+                    alt="Comprobante"
+                    className="w-full max-h-[75vh] object-contain rounded-xl border border-black/10"
+                  />
+                </a>
+              ) : (
+                <div className="text-sm text-[#131e29]/60">Comprobante no disponible.</div>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {bankWithdrawalReceiptOpen ? (
+        <div className="fixed inset-0 z-[80] flex items-start justify-center pt-8 px-4 overflow-y-auto">
+          <button
+            type="button"
+            className="absolute inset-0 bg-black/40"
+            onClick={closeBankWithdrawalReceipt}
+            aria-label="Cerrar"
+          />
+          <div className="relative w-full max-w-2xl rounded-2xl border border-black/10 bg-white p-5 text-[#131e29] my-8">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="text-sm font-semibold">Comprobante de retiro por banco</div>
+                {bankWithdrawalReceiptRow?.id ? (
+                  <div className="mt-1 text-[11px] text-[#131e29]/60 font-mono break-all">{String(bankWithdrawalReceiptRow.id)}</div>
+                ) : null}
+              </div>
+              <button
+                type="button"
+                onClick={closeBankWithdrawalReceipt}
+                className="rounded-xl px-3 py-2 text-xs font-semibold transition border bg-[#e9eef3] hover:bg-[#dde6ee] border-black/10 text-[#131e29]"
+              >
+                Cerrar
+              </button>
+            </div>
+
+            <div className="mt-4">
+              {bankWithdrawalReceiptLoading ? (
+                <div className="text-sm text-[#131e29]/60">Cargando...</div>
+              ) : bankWithdrawalReceiptUrl ? (
+                <a href={bankWithdrawalReceiptUrl} target="_blank" rel="noreferrer">
+                  <img
+                    src={bankWithdrawalReceiptUrl}
+                    alt="Comprobante"
+                    className="w-full max-h-[75vh] object-contain rounded-xl border border-black/10"
+                  />
+                </a>
+              ) : (
+                <div className="text-sm text-[#131e29]/60">Comprobante no disponible.</div>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Admin</h1>
         <button
@@ -268,6 +487,13 @@ const Admin = () => {
                   <div className="shrink-0 flex items-center gap-2">
                     <button
                       type="button"
+                      onClick={() => openBankReceipt(r)}
+                      className="rounded-xl bg-[#e9eef3] hover:bg-[#dde6ee] border border-black/10 px-3 py-2 text-xs font-semibold text-[#131e29] transition"
+                    >
+                      Ver comprobante
+                    </button>
+                    <button
+                      type="button"
                       onClick={() => handleApproveBankDeposit(r.id)}
                       disabled={Boolean(bankActionId) || String(r.status || '').toLowerCase() !== 'pending'}
                       className="rounded-xl bg-doja-cyan/20 hover:bg-doja-cyan/30 border border-doja-cyan/40 px-3 py-2 text-xs font-semibold text-doja-cyan transition disabled:opacity-50"
@@ -284,18 +510,107 @@ const Admin = () => {
                     </button>
                   </div>
                 </div>
-
-                {r.receipt_url ? (
-                  <a href={String(r.receipt_url)} target="_blank" rel="noreferrer">
-                    <img
-                      src={String(r.receipt_url)}
-                      alt="Comprobante"
-                      className="mt-3 w-full max-h-[320px] object-contain rounded-xl border border-black/10"
-                    />
-                  </a>
-                ) : null}
               </div>
             ))}
+          </div>
+        ) : (
+          <div className="mt-3 text-sm text-[#131e29]/60">Sin solicitudes.</div>
+        )}
+      </div>
+
+      <div className="mt-6 rounded-2xl border border-black/10 bg-white p-4">
+        <div className="flex items-center justify-between gap-3">
+          <div className="text-sm font-semibold">Retiros por Banco</div>
+          <div className="text-xs text-[#131e29]/60">
+            {bankWithdrawalsLoading ? 'Cargando...' : `${bankWithdrawals.length}`}
+          </div>
+        </div>
+
+        {bankWithdrawalsLoading ? (
+          <div className="mt-3 text-sm text-[#131e29]/60">Cargando...</div>
+        ) : bankWithdrawals.length ? (
+          <div className="mt-3 space-y-3">
+            {bankWithdrawals.slice(0, 50).map((r) => {
+              const status = String(r.status || '').toLowerCase();
+              const createdAt = String(r?.created_at || '').replace('T', ' ').slice(0, 16);
+              return (
+                <div key={r.id} className="rounded-xl border border-black/10 bg-white p-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="text-sm font-semibold text-[#131e29]">{Number(r.total ?? 0).toFixed(2)} USDT</div>
+                      <div className="mt-1 text-[11px] text-[#131e29]/60 font-mono break-all">{String(r.id)}</div>
+                      <div className="mt-1 text-xs text-[#131e29]/70">usuario: <span className="font-mono break-all">{String(r.user_email || r.user_id || '—')}</span></div>
+                      <div className="mt-1 text-xs text-[#131e29]/70">estado: {String(r.status || '—')}</div>
+                      <div className="mt-1 text-[12px] text-[#131e29]/70">fecha: {createdAt || '—'}</div>
+                      <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <div className="rounded-lg border border-black/10 p-2">
+                          <div className="text-[11px] text-[#131e29]/60">Titular</div>
+                          <div className="text-[12px] font-semibold break-words">{String(r.holder_name || '—')}</div>
+                        </div>
+                        <div className="rounded-lg border border-black/10 p-2">
+                          <div className="text-[11px] text-[#131e29]/60">Banco</div>
+                          <div className="text-[12px] font-semibold break-words">{String(r.bank_name || '—')}</div>
+                        </div>
+                        <div className="rounded-lg border border-black/10 p-2">
+                          <div className="text-[11px] text-[#131e29]/60">Tipo de cuenta</div>
+                          <div className="text-[12px] font-semibold">{String(r.account_type || '—')}</div>
+                        </div>
+                        <div className="rounded-lg border border-black/10 p-2">
+                          <div className="text-[11px] text-[#131e29]/60">Nro. cuenta</div>
+                          <div className="text-[12px] font-semibold font-mono break-all">{String(r.account_number || '—')}</div>
+                        </div>
+                        <div className="rounded-lg border border-black/10 p-2 sm:col-span-2">
+                          <div className="text-[11px] text-[#131e29]/60">Cédula</div>
+                          <div className="text-[12px] font-semibold font-mono break-all">{String(r.cedula || '—')}</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="shrink-0 flex flex-col items-end gap-2">
+                      <button
+                        type="button"
+                        onClick={() => openBankWithdrawalReceipt(r)}
+                        disabled={!r.has_admin_receipt}
+                        className="rounded-xl bg-[#e9eef3] hover:bg-[#dde6ee] border border-black/10 px-3 py-2 text-xs font-semibold text-[#131e29] transition disabled:opacity-50"
+                      >
+                        Ver comprobante
+                      </button>
+
+                      <label className="rounded-xl bg-white border border-black/10 px-3 py-2 text-xs font-semibold text-[#131e29] transition hover:bg-black/5 cursor-pointer w-full text-center">
+                        Subir comprobante
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp"
+                          className="hidden"
+                          onChange={(e) => {
+                            const f = e.target.files?.[0] || null;
+                            setBankWithdrawalUploadFile(f);
+                          }}
+                        />
+                      </label>
+
+                      <button
+                        type="button"
+                        onClick={() => handleUploadBankWithdrawalReceipt(r)}
+                        disabled={Boolean(bankWithdrawalUploadId) || status !== 'pending' || !bankWithdrawalUploadFile || String(r.user_id || '').trim() === ''}
+                        className="rounded-xl bg-doja-cyan/20 hover:bg-doja-cyan/30 border border-doja-cyan/40 px-3 py-2 text-xs font-semibold text-doja-cyan transition disabled:opacity-50 w-full"
+                      >
+                        {bankWithdrawalUploadId === r.id ? 'Subiendo...' : 'Marcar pagado'}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleRejectBankWithdrawal(r.id)}
+                        disabled={Boolean(bankWithdrawalActionId) || status !== 'pending'}
+                        className="rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 px-3 py-2 text-xs font-semibold text-red-500 transition disabled:opacity-50 w-full"
+                      >
+                        {bankWithdrawalActionId === r.id ? 'Procesando...' : 'Rechazar'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         ) : (
           <div className="mt-3 text-sm text-[#131e29]/60">Sin solicitudes.</div>

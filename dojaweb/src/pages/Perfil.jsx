@@ -7,6 +7,8 @@ import {
   getCuentaInfo,
   getMe,
   getMyDeposits,
+  getMyBankWithdrawalReceiptUrl,
+  getMyBankWithdrawals,
   getMyWithdrawals,
   getMyReferralProfile,
   getMyReferralStats,
@@ -55,6 +57,11 @@ const Perfil = () => {
   const [myWithdrawals, setMyWithdrawals] = useState([]);
   const [myWithdrawalsLoading, setMyWithdrawalsLoading] = useState(false);
   const [withdrawalsHistoryOpen, setWithdrawalsHistoryOpen] = useState(false);
+
+  const [bankWithdrawReceiptOpen, setBankWithdrawReceiptOpen] = useState(false);
+  const [bankWithdrawReceiptLoading, setBankWithdrawReceiptLoading] = useState(false);
+  const [bankWithdrawReceiptUrl, setBankWithdrawReceiptUrl] = useState(null);
+  const [bankWithdrawReceiptRow, setBankWithdrawReceiptRow] = useState(null);
 
   const [vipActive, setVipActive] = useState(false);
 
@@ -269,12 +276,44 @@ const Perfil = () => {
 
     try {
       setMyWithdrawalsLoading(true);
-      const rows = await getMyWithdrawals();
-      setMyWithdrawals(Array.isArray(rows) ? rows : []);
+      const [cryptoRows, bankRows] = await Promise.all([getMyWithdrawals(), getMyBankWithdrawals()]);
+      const cryptoItems = (Array.isArray(cryptoRows) ? cryptoRows : []).map((r) => ({ ...r, _type: 'cripto' }));
+      const bankItems = (Array.isArray(bankRows) ? bankRows : []).map((r) => ({ ...r, _type: 'banco' }));
+      const all = [...cryptoItems, ...bankItems].sort((a, b) => {
+        const da = new Date(a?.creado_en || a?.created_at || a?.fecha || 0).getTime();
+        const db = new Date(b?.creado_en || b?.created_at || b?.fecha || 0).getTime();
+        return db - da;
+      });
+      setMyWithdrawals(all);
     } catch {
       setMyWithdrawals([]);
     } finally {
       setMyWithdrawalsLoading(false);
+    }
+  };
+
+  const closeBankWithdrawReceipt = () => {
+    setBankWithdrawReceiptOpen(false);
+    setBankWithdrawReceiptLoading(false);
+    setBankWithdrawReceiptUrl(null);
+    setBankWithdrawReceiptRow(null);
+  };
+
+  const openBankWithdrawReceipt = async (row) => {
+    const id = row?.id;
+    if (!id) return;
+    setBankWithdrawReceiptOpen(true);
+    setBankWithdrawReceiptRow(row || null);
+    setBankWithdrawReceiptLoading(true);
+    setBankWithdrawReceiptUrl(null);
+    try {
+      const resp = await getMyBankWithdrawalReceiptUrl(id);
+      setBankWithdrawReceiptUrl(resp?.receipt_url ? String(resp.receipt_url) : null);
+    } catch (e) {
+      setBankWithdrawReceiptUrl(null);
+      showToast('error', e?.message || 'No se pudo cargar el comprobante');
+    } finally {
+      setBankWithdrawReceiptLoading(false);
     }
   };
 
@@ -390,7 +429,7 @@ const Perfil = () => {
       if (!Number.isFinite(neto) || neto <= 0) return 'Monto inválido';
       if (!withdrawForm.direccion.trim()) return 'Debes ingresar una dirección externa';
     } else if (withdrawForm.metodo === 'banco') {
-      if (monto < 3) return `El retiro mínimo es 3 USDT. Ingresa mínimo ${Number(3).toFixed(2)} USDT`;
+      if (monto < 5) return `El retiro mínimo por banco es 5 USDT. Ingresa mínimo ${Number(5).toFixed(2)} USDT`;
       if (!withdrawForm.holder_name.trim()) return 'Debes ingresar el nombre del titular';
       if (!withdrawForm.bank_name.trim()) return 'Debes ingresar el nombre del banco';
       if (!withdrawForm.account_number.trim()) return 'Debes ingresar el número de cuenta';
@@ -770,10 +809,11 @@ const Perfil = () => {
               <div className="rounded-xl border border-black/10 overflow-hidden bg-white">
                 {myWithdrawals.slice(0, 8).map((w, idx) => {
                   const createdAt = String(w?.creado_en || w?.created_at || w?.fecha || '').replace('T', ' ').slice(0, 16);
-                  const total = Number(w?.total ?? w?.monto ?? 0);
-                  const fee = Number(w?.fee ?? 0);
-                  const neto = Number(w?.monto ?? 0);
-                  const estado = String(w?.estado || '').trim();
+                  const isBank = String(w?._type || '') === 'banco' || (w?.status != null && w?.estado == null);
+                  const total = Number(isBank ? w?.total : w?.total ?? w?.monto ?? 0);
+                  const fee = Number(isBank ? w?.fee : w?.fee ?? 0);
+                  const neto = Number(isBank ? w?.neto : w?.monto ?? 0);
+                  const estado = String((isBank ? w?.status : w?.estado) || '').trim();
                   const statusLabel = estado ? estado.charAt(0).toUpperCase() + estado.slice(1) : '—';
 
                   return (
@@ -781,7 +821,7 @@ const Perfil = () => {
                       <div className="px-3 py-2 flex items-center justify-between gap-3">
                         <div className="min-w-0">
                           <div className="text-[12px] text-[#131e29]/80 truncate">
-                            Total {Number.isFinite(total) ? total.toFixed(2) : '0.00'} USDT
+                            Total {Number.isFinite(total) ? total.toFixed(2) : '0.00'} USDT{isBank ? ' (Banco)' : ''}
                             {Number.isFinite(fee) && fee > 0 ? ` (fee ${fee.toFixed(2)})` : ''}
                           </div>
                           <div className="text-[11px] text-[#131e29]/50 truncate">
@@ -789,7 +829,18 @@ const Perfil = () => {
                             {Number.isFinite(neto) && neto > 0 ? ` · Neto ${neto.toFixed(2)}` : ''}
                           </div>
                         </div>
-                        <div className="text-[11px] font-semibold text-right">{statusLabel}</div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          {isBank && String(estado).toLowerCase() === 'paid' ? (
+                            <button
+                              type="button"
+                              onClick={() => openBankWithdrawReceipt(w)}
+                              className="rounded-xl bg-[#e9eef3] hover:bg-[#dde6ee] border border-black/10 px-2 py-1 text-[11px] font-semibold text-[#131e29] transition"
+                            >
+                              Ver comprobante
+                            </button>
+                          ) : null}
+                          <div className="text-[11px] font-semibold text-right">{statusLabel}</div>
+                        </div>
                       </div>
                       {idx < Math.min(myWithdrawals.length, 8) - 1 ? <div className="h-px bg-black/10" /> : null}
                     </div>

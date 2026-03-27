@@ -154,6 +154,37 @@ export const adminRejectBankDeposit = (id) => {
   return apiFetch(`/api/admin/bank-deposits/${encodeURIComponent(String(id))}/reject`, { method: 'POST' });
 };
 
+export const adminGetBankDepositReceiptUrl = (id) => {
+  if (!id) throw new Error('Falta id');
+  return apiFetch(`/api/admin/bank-deposits/${encodeURIComponent(String(id))}/receipt-url`);
+};
+
+export const adminGetBankWithdrawals = ({ limit } = {}) => {
+  const params = new URLSearchParams();
+  if (Number.isFinite(Number(limit))) params.set('limit', String(limit));
+  const q = params.toString();
+  return apiFetch(`/api/admin/bank-withdrawals${q ? `?${q}` : ''}`);
+};
+
+export const adminGetBankWithdrawalReceiptUrl = (id) => {
+  if (!id) throw new Error('Falta id');
+  return apiFetch(`/api/admin/bank-withdrawals/${encodeURIComponent(String(id))}/receipt-url`);
+};
+
+export const adminMarkBankWithdrawalPaid = ({ id, admin_receipt_path }) => {
+  if (!id) throw new Error('Falta id');
+  if (!admin_receipt_path) throw new Error('Falta admin_receipt_path');
+  return apiFetch(`/api/admin/bank-withdrawals/${encodeURIComponent(String(id))}/mark-paid`, {
+    method: 'POST',
+    body: { admin_receipt_path },
+  });
+};
+
+export const adminRejectBankWithdrawal = (id) => {
+  if (!id) throw new Error('Falta id');
+  return apiFetch(`/api/admin/bank-withdrawals/${encodeURIComponent(String(id))}/reject`, { method: 'POST' });
+};
+
 export const getWalletHistory = () => apiFetch('/api/wallet/history');
 
 export const createDepositAddress = () => apiFetch('/api/deposit/address', { method: 'POST' });
@@ -414,6 +445,13 @@ export const createBankDeposit = ({ amount, receipt_path }) =>
   apiFetch('/api/bank/deposits', { method: 'POST', body: { amount, receipt_path } });
 
 export const getMyWithdrawals = () => apiFetch('/api/withdraw/me');
+
+export const getMyBankWithdrawals = () => apiFetch('/api/withdraw/bank/me');
+
+export const getMyBankWithdrawalReceiptUrl = (id) => {
+  if (!id) throw new Error('Falta id');
+  return apiFetch(`/api/withdraw/bank/${encodeURIComponent(String(id))}/receipt-url`);
+};
 
 export const getMyReferralMembers = (level) => {
   const n = Number(level);
