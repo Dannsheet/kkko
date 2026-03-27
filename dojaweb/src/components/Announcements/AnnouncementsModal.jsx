@@ -78,7 +78,7 @@ const AnnouncementsModal = () => {
 
       <div key="p3" className="flex items-center justify-center">
         <img
-          src="/page02.webp"
+          src="/kia-banco.jpeg"
           alt="Anuncio 2"
           className="w-full h-auto max-h-[55vh] object-contain rounded-xl"
         />
