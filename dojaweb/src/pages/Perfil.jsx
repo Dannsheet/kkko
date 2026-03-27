@@ -1027,6 +1027,51 @@ const Perfil = () => {
         </div>
       ) : null}
 
+      {bankWithdrawReceiptOpen ? (
+        <div className="fixed inset-0 z-[80] flex items-start justify-center pt-8 px-4 overflow-y-auto">
+          <button
+            type="button"
+            className="absolute inset-0 bg-black/40"
+            onClick={closeBankWithdrawReceipt}
+            aria-label="Cerrar"
+          />
+
+          <div className="relative w-full max-w-2xl rounded-2xl border border-black/10 bg-white p-5 text-[#131e29] my-8">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="text-sm font-semibold">Comprobante de retiro por banco</div>
+                {bankWithdrawReceiptRow?.id ? (
+                  <div className="mt-1 text-[11px] text-[#131e29]/60 font-mono break-all">{String(bankWithdrawReceiptRow.id)}</div>
+                ) : null}
+              </div>
+              <button
+                type="button"
+                onClick={closeBankWithdrawReceipt}
+                className="rounded-xl px-3 py-2 text-xs font-semibold transition border bg-[#e9eef3] hover:bg-[#dde6ee] border-black/10 text-[#131e29]"
+              >
+                Cerrar
+              </button>
+            </div>
+
+            <div className="mt-4">
+              {bankWithdrawReceiptLoading ? (
+                <div className="text-sm text-[#131e29]/60">Cargando...</div>
+              ) : bankWithdrawReceiptUrl ? (
+                <a href={bankWithdrawReceiptUrl} target="_blank" rel="noreferrer">
+                  <img
+                    src={bankWithdrawReceiptUrl}
+                    alt="Comprobante"
+                    className="w-full max-h-[75vh] object-contain rounded-xl border border-black/10"
+                  />
+                </a>
+              ) : (
+                <div className="text-sm text-[#131e29]/60">Comprobante no disponible</div>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       {withdrawOpen && (
         <div className="fixed inset-0 z-[70] flex items-start justify-center pt-8 px-4 overflow-y-auto">
           <button
