@@ -20,13 +20,11 @@ const AnnouncementsModal = () => {
     const id = window.setTimeout(() => {
       if (!user?.id) {
         setOpen(false);
-        setPage(0);
         return;
       }
 
       if (String(location?.pathname || '') === '/dashboard') {
         setOpen(true);
-        setPage(0);
         return;
       }
 
@@ -41,7 +39,6 @@ const AnnouncementsModal = () => {
       }
 
       setOpen(true);
-      setPage(0);
     }, 0);
 
     return () => window.clearTimeout(id);
@@ -50,7 +47,7 @@ const AnnouncementsModal = () => {
   const pages = useMemo(
     () => [
       <div key="p1" className="text-sm text-white/90 leading-relaxed">
-        <div className="text-center font-bold">� ¡Bienvenido a la plataforma Kia!</div>
+        <div className="text-center font-bold">🎉 ¡Bienvenido a la plataforma Kia!</div>
 
         <div className="mt-4 space-y-3">
           <div>
@@ -66,14 +63,6 @@ const AnnouncementsModal = () => {
 
           <div>✨ Empieza hoy, completa tus primeras reseñas y comienza a ganar.</div>
         </div>
-      </div>,
-
-      <div key="p2" className="flex items-center justify-center">
-        <img
-          src="/page01.jpeg"
-          alt="Anuncio 1"
-          className="w-full h-auto max-h-[55vh] object-contain rounded-xl"
-        />
       </div>,
 
       <div key="p3" className="flex items-center justify-center">
@@ -120,6 +109,7 @@ const AnnouncementsModal = () => {
   const prev = () => {
     setPage((p) => Math.max(p - 1, 0));
   };
+
 
   if (!open) return null;
 
