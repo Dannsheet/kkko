@@ -150,41 +150,18 @@ const WalletPage = () => {
   const bankAccounts = useMemo(
     () => [
       {
-        title: 'Cuenta 1',
-        bank: 'Pichincha (Ahorro)',
+        title: 'Cuenta',
+        bank: 'Banco Pichincha',
         holder: 'Irene Isabel Zambrano Cedeño',
-        cedula: '1350439988',
+        cedula: '1350224885',
         account: '2211995310',
-        type: 'Ahorro',
-      },
-      {
-        title: 'Cuenta 2',
-        bank: 'Pichincha (Ahorro)',
-        holder: 'Omar Medin Lombeida',
-        cedula: '1723049019',
-        account: '2200228336',
-        type: 'Ahorro',
-      },
-      {
-        title: 'Cuenta 3',
-        bank: 'Pichincha (Ahorro)',
-        holder: 'Katherine Isabel Briones Espinales',
-        cedula: '1350416028',
-        account: '2212697545',
         type: 'Ahorro',
       },
     ],
     [],
   );
 
-  const [selectedBankIdx, setSelectedBankIdx] = useState(0);
-  useEffect(() => {
-    if (rechargeMethod !== 'bank') return;
-    const next = Math.floor(Math.random() * bankAccounts.length);
-    setSelectedBankIdx(next);
-  }, [bankAccounts.length, rechargeMethod]);
-
-  const selectedBankAccount = bankAccounts[selectedBankIdx] || bankAccounts[0];
+  const selectedBankAccount = bankAccounts[0];
 
   const loadMyBankDeposits = useCallback(async () => {
     setMyBankDepositsLoading(true);
@@ -794,16 +771,19 @@ const WalletPage = () => {
 
                 <div>
                   <div className="text-[12px] text-[#131e29]/70 mb-2">Comprobante (imagen)</div>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => {
-                      const f = e.target.files?.[0] || null;
-                      setBankReceiptFile(f);
-                    }}
-                    className="w-full text-sm"
-                    disabled={bankSubmitting}
-                  />
+                  <label className="w-full flex items-center justify-center rounded-xl border border-black/10 bg-white px-4 py-3 text-sm font-semibold text-[#131e29] shadow-sm hover:shadow-md hover:bg-black/5 transition cursor-pointer">
+                    {bankReceiptFile ? String(bankReceiptFile.name || 'Comprobante seleccionado') : 'Subir comprobante'}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0] || null;
+                        setBankReceiptFile(f);
+                      }}
+                      className="hidden"
+                      disabled={bankSubmitting}
+                    />
+                  </label>
                   {bankReceiptPreviewUrl ? (
                     <img
                       src={bankReceiptPreviewUrl}
