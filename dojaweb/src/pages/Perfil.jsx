@@ -688,7 +688,7 @@ const Perfil = () => {
 
       return [
         { label: 'Valor Recargado (USDT)', value: Number(recargaAcumulada || 0).toFixed(2) },
-        { label: 'Recargado por banco (USDT)', value: Number(recargaBancoAcumulada || 0).toFixed(2) },
+        { label: 'Recargado por banco (USD)', value: Number(recargaBancoAcumulada || 0).toFixed(2) },
         { label: 'Ingresos totales', value: Number(gananciasTotales || 0).toFixed(2) },
         { label: 'Valor actual', value: Number(valorActual || 0).toFixed(2) },
         {
