@@ -431,17 +431,17 @@ const WalletPage = () => {
     if (!withdrawForm.pin.trim()) return 'Debes ingresar el PIN';
     if (monto > withdrawBalanceNumber) return 'Saldo insuficiente';
 
-    if (withdrawForm.metodo === 'cripto') {
+    if (withdrawForm.metodo === 'crypto') {
       if (!withdrawForm.red) return 'Debes seleccionar una red';
       const feePercent = Number(withdrawFeePercent?.[withdrawForm.red]);
       if (!Number.isFinite(feePercent) || feePercent <= 0) return 'Red no soportada';
-      if (monto < 3) return `El retiro mínimo es 3 USDT. Ingresa mínimo ${Number(3).toFixed(2)} USDT`;
+      if (monto < 3.5) return `El retiro mínimo por USDT es de 3.50 USDT. Debes ingresar mínimo ${Number(3.5).toFixed(2)} USDT`;
       const fee = Math.round(monto * feePercent * 100) / 100;
       const neto = monto - fee;
       if (!Number.isFinite(neto) || neto <= 0) return 'Monto inválido';
       if (!withdrawForm.direccion.trim()) return 'Debes ingresar una dirección externa';
     } else if (withdrawForm.metodo === 'banco') {
-      if (monto < 5) return `El retiro mínimo por banco es 5 USDT. Ingresa mínimo ${Number(5).toFixed(2)} USDT`;
+      if (monto < 5) return `El retiro mínimo por banco es de 5 USD. Debes ingresar mínimo ${Number(5).toFixed(2)} USD`;
       if (!withdrawForm.holder_name.trim()) return 'Debes ingresar el nombre del titular';
       if (!withdrawForm.bank_name.trim()) return 'Debes ingresar el nombre del banco';
       if (!withdrawForm.account_number.trim()) return 'Debes ingresar el número de cuenta';
@@ -871,9 +871,11 @@ const WalletPage = () => {
           </button>
         </div>
 
-        <div className="mt-3 text-[11px] text-[#131e29]/70">
-          El retiro mínimo es de 3 USDT. Se descontará comisión del 10% por retiro
-        </div>
+        <div className="mt-2 text-[11px] text-[#131e29]/70">
+            El retiro minimo por USDT es de 3.50 USDT. Se descontará comisión del 10%
+            <br />
+            El retiro minimo por banco es de 5 USD. Se descontará comisión del 10% y en caso de ser requerido, comision interbancaria.
+          </div>
 
         {deposit && (
           <div className="mt-4 rounded-2xl bg-white border border-black/10 p-4">

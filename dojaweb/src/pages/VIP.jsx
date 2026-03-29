@@ -11,6 +11,7 @@ import {
   getMyPlans,
   getReviewsModels,
   getReviewsStatus,
+  getVipTrialEligibility,
   startVipTrial,
   submitReview,
 } from '../lib/api.js';
@@ -38,6 +39,8 @@ const VIP = () => {
   const [nowTs, setNowTs] = useState(() => Date.now());
   const [reviewsStatus, setReviewsStatus] = useState(null);
   const [reviewsModels, setReviewsModels] = useState([]);
+
+  const [trialEligibility, setTrialEligibility] = useState(null);
 
   const [reviewPlanId, setReviewPlanId] = useState(null);
   const [reviewStars, setReviewStars] = useState(0);
@@ -151,6 +154,13 @@ const VIP = () => {
         getMyPlans(),
         getReviewsStatus(),
       ]);
+
+      try {
+        const elig = await getVipTrialEligibility();
+        setTrialEligibility(elig || null);
+      } catch {
+        setTrialEligibility(null);
+      }
 
       setPlans(planesData.status === 'fulfilled' && Array.isArray(planesData.value) ? planesData.value : []);
       setReviewsModels(modelsData.status === 'fulfilled' && Array.isArray(modelsData.value) ? modelsData.value : []);
@@ -410,6 +420,11 @@ const VIP = () => {
       Number(plan?.ganancia_diaria) === 1;
 
     if (isTrialPlan) {
+      const eligible = Boolean(trialEligibility?.eligible);
+      if (!eligible) {
+        showToast('error', 'Plan gratuito disponible solo para usuarios nuevos');
+        return;
+      }
       setBuyingPlanId(plan.id);
       try {
         const resp = await startVipTrial(plan.id);
@@ -670,6 +685,14 @@ const VIP = () => {
                   Number(b.ganancia_diaria) === 1;
                 return isTrialA ? -1 : isTrialB ? 1 : 0;
               })
+              .filter((plan) => {
+                const isTrialPlan =
+                  Number(plan?.precio) === 0 &&
+                  Number(plan?.duracion_dias) === 3 &&
+                  Number(plan?.ganancia_diaria) === 1;
+                if (!isTrialPlan) return true;
+                return Boolean(trialEligibility?.eligible);
+              })
               .map((plan) => {
                 const level = getVipLevel(plan);
                 const meta = level ? vipDailyByLevel[level] : null;
@@ -685,6 +708,9 @@ const VIP = () => {
                   Number(price) === 0 &&
                   Number(plan?.duracion_dias) === 3 &&
                   Number(plan?.ganancia_diaria) === 1;
+
+                const trialDisabled = isTrialPlan && !trialEligibility?.eligible;
+                const finalDisabled = isDisabled || trialDisabled;
 
                 const model = modelByPlanId.get(planId) || null;
                 const modelName = model?.nombre || plan?.nombre || `Plan #${planId}`;
@@ -720,7 +746,7 @@ const VIP = () => {
                         </div>
                         <button
                           type="button"
-                          disabled={isDisabled}
+                          disabled={finalDisabled}
                           onClick={() => handleBuy(plan)}
                           className={
                             'rounded-xl border px-1.5 py-1.5 sm:px-2 sm:py-2 text-center text-[11px] sm:text-xs font-extrabold transition truncate ' +
