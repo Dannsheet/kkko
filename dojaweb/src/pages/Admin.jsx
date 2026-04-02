@@ -16,6 +16,7 @@ import {
   adminGetUserDetail,
   adminGetUserReferrals,
   adminGetUsers,
+  adminDeactivateUserPlans,
 } from '../lib/api.js';
 
 const Admin = () => {
@@ -30,6 +31,8 @@ const Admin = () => {
   const [usersLoading, setUsersLoading] = useState(false);
   const [users, setUsers] = useState([]);
   const [userSearch, setUserSearch] = useState('');
+  const [usersHasActivePlan, setUsersHasActivePlan] = useState(false);
+  const [usersPlanId, setUsersPlanId] = useState('');
 
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [selectedLoading, setSelectedLoading] = useState(false);
@@ -101,12 +104,18 @@ const Admin = () => {
   const loadUsers = useCallback(async () => {
     setUsersLoading(true);
     try {
-      const resp = await adminGetUsers({ search: userSearch || undefined, limit: 200, offset: 0 });
+      const resp = await adminGetUsers({
+        search: userSearch || undefined,
+        limit: 200,
+        offset: 0,
+        has_active_plan: usersHasActivePlan ? true : undefined,
+        plan_id: usersPlanId !== '' ? usersPlanId : undefined,
+      });
       setUsers(Array.isArray(resp?.users) ? resp.users : []);
     } finally {
       setUsersLoading(false);
     }
-  }, [userSearch]);
+  }, [userSearch, usersHasActivePlan, usersPlanId]);
 
   const loadSelectedUser = useCallback(async (id) => {
     if (!id) return;
@@ -298,6 +307,20 @@ const Admin = () => {
       showToast('error', e?.message || 'No se pudo confirmar el retiro');
     } finally {
       setConfirmingWithdrawalId(null);
+    }
+  };
+
+  const handleDeactivatePlans = async () => {
+    if (!selectedUserId) return;
+    const ok = window.confirm('¿Desactivar todos los planes activos de este usuario?');
+    if (!ok) return;
+    try {
+      await adminDeactivateUserPlans(selectedUserId);
+      showToast('success', 'Planes desactivados');
+      await loadSelectedUser(selectedUserId);
+      await loadUsers();
+    } catch (e) {
+      showToast('error', e?.message || 'No se pudo desactivar');
     }
   };
 
@@ -660,6 +683,36 @@ const Admin = () => {
               placeholder="Buscar por correo"
               className="w-full rounded-xl bg-white border border-black/10 px-4 py-3 text-sm outline-none focus:border-black/30"
             />
+
+            <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <label className="flex items-center gap-2 rounded-xl border border-black/10 bg-white px-3 py-3 text-sm">
+                <input
+                  type="checkbox"
+                  checked={usersHasActivePlan}
+                  onChange={(e) => setUsersHasActivePlan(e.target.checked)}
+                />
+                <span className="text-[#131e29]/80">Solo con plan activo</span>
+              </label>
+
+              <select
+                value={usersPlanId}
+                onChange={(e) => setUsersPlanId(e.target.value)}
+                className="w-full rounded-xl bg-white border border-black/10 px-4 py-3 text-sm outline-none focus:border-black/30"
+              >
+                <option value="">Todos los VIP</option>
+                <option value="1">VIP 1</option>
+                <option value="2">VIP 2</option>
+                <option value="3">VIP 3</option>
+                <option value="4">VIP 4</option>
+                <option value="5">VIP 5</option>
+                <option value="6">VIP 6</option>
+                <option value="7">VIP 7</option>
+                <option value="8">VIP 8</option>
+                <option value="9">VIP 9</option>
+                <option value="10">VIP 10</option>
+              </select>
+            </div>
+
             <button
               type="button"
               onClick={loadUsers}
@@ -788,6 +841,15 @@ const Admin = () => {
                 ) : (
                   <div className="mt-2 text-sm text-[#131e29]/60">Sin planes.</div>
                 )}
+
+                <button
+                  type="button"
+                  onClick={handleDeactivatePlans}
+                  disabled={selectedLoading || !selectedPlans.some((p) => Boolean(p?.is_active))}
+                  className="mt-3 w-full rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 py-3 text-sm font-semibold transition text-red-500 disabled:opacity-50"
+                >
+                  Desactivar planes activos
+                </button>
               </div>
 
               <div className="mt-4">

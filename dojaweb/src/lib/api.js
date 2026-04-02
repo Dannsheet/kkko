@@ -109,13 +109,20 @@ export const getMe = () => apiFetch('/api/me', { cacheTtlMs: 8000 });
 
 export const adminGetSummary = () => apiFetch('/api/admin/summary');
 
-export const adminGetUsers = ({ search, limit, offset } = {}) => {
+export const adminGetUsers = ({ search, limit, offset, has_active_plan, plan_id } = {}) => {
   const params = new URLSearchParams();
   if (search) params.set('search', String(search));
   if (Number.isFinite(Number(limit))) params.set('limit', String(limit));
   if (Number.isFinite(Number(offset))) params.set('offset', String(offset));
+  if (has_active_plan != null) params.set('has_active_plan', String(has_active_plan));
+  if (plan_id != null && String(plan_id) !== '') params.set('plan_id', String(plan_id));
   const q = params.toString();
   return apiFetch(`/api/admin/users${q ? `?${q}` : ''}`);
+};
+
+export const adminDeactivateUserPlans = (userId) => {
+  if (!userId) throw new Error('Falta userId');
+  return apiFetch(`/api/admin/users/${encodeURIComponent(String(userId))}/plans/deactivate`, { method: 'POST' });
 };
 
 export const adminGetUserDetail = (userId) => {
